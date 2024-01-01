@@ -1,0 +1,6 @@
+package com.xattabyte.anu3
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity() {
+}
