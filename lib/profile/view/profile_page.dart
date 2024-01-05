@@ -23,8 +23,16 @@ class MyProfile extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            CircleAvatar(
+              radius: 50.0,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100.0),
+                child: Image.network(user?.userMetadata?['avatar_url'] ?? "https://placehold.jp/150x150.png"),
+              ),
+            ),
             Text(user?.userMetadata?['name'] ?? ''),
             Text(user?.email ?? ''),
+            Text(user?.id ?? ''),
             ElevatedButton(
               onPressed: logout,
               child: const Text('Logout'),
