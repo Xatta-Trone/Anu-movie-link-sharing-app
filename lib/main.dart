@@ -1,11 +1,13 @@
 import 'package:anu3/auth/auth.dart';
-import 'package:anu3/profile/view/profile_page.dart';
+import 'package:anu3/core/core.dart';
+import 'package:anu3/dashboard/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL'] ?? '',
@@ -16,23 +18,21 @@ void main() async {
   ));
 }
 
-final supabase = Supabase.instance.client;
-
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authUserProvider).asData?.value;
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 245, 1),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        // colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         useMaterial3: true,
       ),
-      // home: const MyHomePage(title: 'Flutter Demo Home Page'),
-      home: user == null ? const LoginPage() : const MyProfile(),
+      routerConfig: router,
     );
   }
 }
