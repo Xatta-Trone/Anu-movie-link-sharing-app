@@ -4,6 +4,7 @@
         "cupertino",
         "dotenv",
         "riverpod",
-        "Supabase"
+        "Supabase",
+        "upsert"
     ]
 }

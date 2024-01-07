@@ -1,3 +1,4 @@
+import 'package:anu3/group/api/group_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +12,32 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
   final _formKey = GlobalKey<FormState>();
   final _groupNameController = TextEditingController();
   final List<bool> _selectedPrivacy = <bool>[true, false];
+  bool _isCreating = false;
+
+  addGroup(BuildContext context) {
+    setState(() {
+      _isCreating = true;
+    });
+    final isPrivate = _selectedPrivacy[0] == true;
+
+    try {
+      ref.read(groupRepositoryProvider).addGroup(name: _groupNameController.text, visibility: isPrivate);
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Group created')),
+      );
+      _groupNameController.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error creating group')),
+      );
+    }
+
+    setState(() {
+      _isCreating = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,16 +113,20 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(5.0))),
                       // backgroundColor: Colors.teal[400],
                     ),
-                    onPressed: () {
-                      // Validate returns true if the form is valid, or false otherwise.
-                      if (_formKey.currentState!.validate()) {
-                        // If the form is valid, display a snackbar. In the real world,
-                        // you'd often call a server or save the information in a database.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
-                        );
-                      }
-                    },
+                    onPressed: _isCreating
+                        ? null
+                        : () {
+                            // Validate returns true if the form is valid, or false otherwise.
+                            if (_formKey.currentState!.validate()) {
+                              // If the form is valid, display a snackbar. In the real world,
+                              // you'd often call a server or save the information in a database.
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Processing Data')),
+                              );
+
+                              addGroup(context);
+                            }
+                          },
                     child: const Text('Create Group'),
                   ),
                 ),
