@@ -6,12 +6,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'group_list_notifier_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class GroupListNotifier extends _$GroupListNotifier {
   int _page = 1;
 
   @override
-  FutureOr<List<GroupModel>> build() async {
+  Future<List<GroupModel>> build() async {
     _fetchGroups(page: 1);
     return <GroupModel>[];
   }
