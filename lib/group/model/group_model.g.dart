@@ -12,6 +12,7 @@ _$GroupModelImpl _$$GroupModelImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       code: json['code'] as String,
       visibility: json['visibility'] as bool,
+      userId: json['user_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
 
@@ -21,5 +22,6 @@ Map<String, dynamic> _$$GroupModelImplToJson(_$GroupModelImpl instance) =>
       'name': instance.name,
       'code': instance.code,
       'visibility': instance.visibility,
+      'user_id': instance.userId,
       'created_at': instance.createdAt.toIso8601String(),
     };

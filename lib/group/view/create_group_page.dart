@@ -1,12 +1,13 @@
-import 'dart:io';
-
-import 'package:anu3/group/api/group_repository.dart';
+import 'package:anu3/group/group.dart';
 import 'package:anu3/group/providers/group_list_notifier_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// ignore: must_be_immutable
 class CreateGroupPage extends ConsumerStatefulWidget {
-  const CreateGroupPage({super.key});
+  String? groupId;
+  CreateGroupPage({super.key, this.groupId});
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _CreateGroupPageState();
 }
@@ -14,31 +15,68 @@ class CreateGroupPage extends ConsumerStatefulWidget {
 class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
   final _formKey = GlobalKey<FormState>();
   final _groupNameController = TextEditingController();
-  final List<bool> _selectedPrivacy = <bool>[true, false];
+  // 1st private 2nd public
+  final List<bool> _isPublic = <bool>[false, true];
   bool _isCreating = false;
 
-  addGroup(BuildContext context) {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.groupId != null) {
+      if (kDebugMode) {
+        print(widget.groupId);
+      }
+      GroupModel group = ref.read(groupListNotifierProvider.notifier).getGroupById(int.parse(widget.groupId!));
+      _groupNameController.text = group.name;
+      _isPublic[0] = group.visibility == false;
+      _isPublic[1] = group.visibility == true;
+    }
+  }
+
+  handleSubmit(BuildContext context) {
     setState(() {
       _isCreating = true;
     });
-    final isPrivate = _selectedPrivacy[0] == true;
-
+    final isPublic = _isPublic[1] == true;
+    // ... Your code here ...
+    ScaffoldMessenger.of(context).clearSnackBars();
     try {
-      ref.read(groupListNotifierProvider.notifier).addGroup(name: _groupNameController.text, visibility: isPrivate);
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Group created')),
-      );
+      if (widget.groupId == null) {
+        ref.read(groupListNotifierProvider.notifier).addGroup(name: _groupNameController.text, visibility: isPublic);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group created...')),
+        );
+      } else {
+        if (kDebugMode) {
+          print(
+            'updating....$isPublic',
+          );
+        }
+        ref.read(groupListNotifierProvider.notifier).updateGroup(id: widget.groupId!, name: _groupNameController.text, visibility: isPublic);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Group updated...')),
+        );
+      }
+
       _groupNameController.clear();
       if (mounted) {
         // sleep(const Duration(seconds: 1));
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error creating group')),
-      );
+      if (widget.groupId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error creating group')),
+        );
+
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error updating group')),
+        );
+      }
+     
     }
 
     setState(() {
@@ -50,7 +88,7 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Create Group'),
+          title: Text('${widget.groupId == null ? 'Create' : 'Update'} Group'),
           elevation: double.infinity,
         ),
         body: Padding(
@@ -82,14 +120,14 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                 ),
                 ToggleButtons(
                   constraints: BoxConstraints(
-                    minWidth: (MediaQuery.of(context).size.width - 20) / _selectedPrivacy.length,
+                    minWidth: (MediaQuery.of(context).size.width - 20) / _isPublic.length,
                   ),
-                  isSelected: _selectedPrivacy,
+                  isSelected: _isPublic,
                   onPressed: (int index) {
                     setState(() {
                       // The button that is tapped is set to true, and the others to false.
-                      for (int i = 0; i < _selectedPrivacy.length; i++) {
-                        _selectedPrivacy[i] = i == index;
+                      for (int i = 0; i < _isPublic.length; i++) {
+                        _isPublic[i] = i == index;
                       }
                     });
                   },
@@ -131,10 +169,10 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
                                 const SnackBar(content: Text('Processing Data')),
                               );
 
-                              addGroup(context);
+                              handleSubmit(context);
                             }
                           },
-                    child: const Text('Create Group'),
+                    child: Text(widget.groupId == null ? 'Create' : 'Update'),
                   ),
                 ),
               ],

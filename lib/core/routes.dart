@@ -3,6 +3,7 @@ import 'package:anu3/core/core.dart';
 import 'package:anu3/dashboard/dashboard.dart';
 import 'package:anu3/group/view/create_group_page.dart';
 import 'package:anu3/profile/view/profile_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 
 // final user = ref.watch(authUserProvider).asData?.value;
@@ -28,7 +29,15 @@ final router = GoRouter(
     GoRoute(
       name: createGroupRoute,
       path: '/create-group',
-      builder: (context, state) => const CreateGroupPage(),
+      builder: (context, state) {
+        final groupId = state.uri.queryParameters['group_id'];
+        if (kDebugMode) {
+          print('Group ID: $groupId');
+        }
+        return CreateGroupPage(
+          groupId: groupId,
+        );
+      },
     )
   ],
 );

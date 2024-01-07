@@ -24,6 +24,8 @@ mixin _$GroupModel {
   String get name => throw _privateConstructorUsedError;
   String get code => throw _privateConstructorUsedError;
   bool get visibility => throw _privateConstructorUsedError;
+  @JsonKey(name: 'user_id')
+  String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
 
@@ -44,6 +46,7 @@ abstract class $GroupModelCopyWith<$Res> {
       String name,
       String code,
       bool visibility,
+      @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'created_at') DateTime createdAt});
 }
 
@@ -64,6 +67,7 @@ class _$GroupModelCopyWithImpl<$Res, $Val extends GroupModel>
     Object? name = null,
     Object? code = null,
     Object? visibility = null,
+    Object? userId = null,
     Object? createdAt = null,
   }) {
     return _then(_value.copyWith(
@@ -83,6 +87,10 @@ class _$GroupModelCopyWithImpl<$Res, $Val extends GroupModel>
           ? _value.visibility
           : visibility // ignore: cast_nullable_to_non_nullable
               as bool,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -104,6 +112,7 @@ abstract class _$$GroupModelImplCopyWith<$Res>
       String name,
       String code,
       bool visibility,
+      @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'created_at') DateTime createdAt});
 }
 
@@ -122,6 +131,7 @@ class __$$GroupModelImplCopyWithImpl<$Res>
     Object? name = null,
     Object? code = null,
     Object? visibility = null,
+    Object? userId = null,
     Object? createdAt = null,
   }) {
     return _then(_$GroupModelImpl(
@@ -141,6 +151,10 @@ class __$$GroupModelImplCopyWithImpl<$Res>
           ? _value.visibility
           : visibility // ignore: cast_nullable_to_non_nullable
               as bool,
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -157,6 +171,7 @@ class _$GroupModelImpl implements _GroupModel {
       required this.name,
       required this.code,
       required this.visibility,
+      @JsonKey(name: 'user_id') required this.userId,
       @JsonKey(name: 'created_at') required this.createdAt});
 
   factory _$GroupModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -171,12 +186,15 @@ class _$GroupModelImpl implements _GroupModel {
   @override
   final bool visibility;
   @override
+  @JsonKey(name: 'user_id')
+  final String userId;
+  @override
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
 
   @override
   String toString() {
-    return 'GroupModel(id: $id, name: $name, code: $code, visibility: $visibility, createdAt: $createdAt)';
+    return 'GroupModel(id: $id, name: $name, code: $code, visibility: $visibility, userId: $userId, createdAt: $createdAt)';
   }
 
   @override
@@ -189,6 +207,7 @@ class _$GroupModelImpl implements _GroupModel {
             (identical(other.code, code) || other.code == code) &&
             (identical(other.visibility, visibility) ||
                 other.visibility == visibility) &&
+            (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -196,7 +215,7 @@ class _$GroupModelImpl implements _GroupModel {
   @JsonKey(ignore: true)
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, name, code, visibility, createdAt);
+      Object.hash(runtimeType, id, name, code, visibility, userId, createdAt);
 
   @JsonKey(ignore: true)
   @override
@@ -218,6 +237,7 @@ abstract class _GroupModel implements GroupModel {
           required final String name,
           required final String code,
           required final bool visibility,
+          @JsonKey(name: 'user_id') required final String userId,
           @JsonKey(name: 'created_at') required final DateTime createdAt}) =
       _$GroupModelImpl;
 
@@ -232,6 +252,9 @@ abstract class _GroupModel implements GroupModel {
   String get code;
   @override
   bool get visibility;
+  @override
+  @JsonKey(name: 'user_id')
+  String get userId;
   @override
   @JsonKey(name: 'created_at')
   DateTime get createdAt;

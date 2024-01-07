@@ -26,7 +26,8 @@ class GroupRepository {
       throw 'Not logged in';
     }
 
-    final response = await _client.from('groups').select('*, group_user!inner()').eq('group_user.user_id', userId).range(from, to);
+    final response =
+        await _client.from('groups').select('*, group_user!inner()').eq('group_user.user_id', userId).range(from, to).order('id', ascending: false);
     if (kDebugMode) {
       print(response.toString());
     }
@@ -70,6 +71,10 @@ class GroupRepository {
         'code': groupCode,
       }).select();
 
+      if (kDebugMode) {
+        print(response);
+      }
+
       if (response.isNotEmpty) {
         final groupModel = GroupModel.fromJson(response[0]);
         addMemberToGroup(groupId: groupModel.id.toString(), memberId: userId, isAdmin: true, isPending: false);
@@ -88,9 +93,29 @@ class GroupRepository {
       } else {
         throw "An error occurred creating the group";
       }
-
     }
     return null;
+  }
+
+  Future<bool> updateGroup({
+    required String groupId,
+    required String name,
+    required bool visibility,
+  }) async {
+    try {
+      await _client.from('groups').update({
+        'name': name,
+        'visibility': visibility,
+      }).match({
+        'id': groupId,
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return false;
+    }
   }
 
   Future<void> addMemberToGroup({required String groupId, required String memberId, bool isAdmin = false, bool isPending = true}) async {
@@ -118,6 +143,21 @@ class GroupRepository {
       } else {
         throw "An error occurred while inserting record";
       }
+    }
+  }
+
+  Future<bool> deleteGroup({required int groupId}) async {
+    try {
+      var deleted = await _client.from('groups').delete().match({'id': groupId});
+      if (kDebugMode) {
+        print(deleted);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return false;
     }
   }
 }

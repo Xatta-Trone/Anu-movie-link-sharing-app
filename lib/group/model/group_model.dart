@@ -10,6 +10,7 @@ class GroupModel with _$GroupModel {
     required String name,
     required String code,
     required bool visibility,
+    @JsonKey(name: 'user_id') required String userId,
     @JsonKey(name: 'created_at') required DateTime createdAt,
   }) = _GroupModel;
 

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:anu3/group/api/group_repository.dart';
 import 'package:anu3/group/group.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -36,5 +34,39 @@ class GroupListNotifier extends _$GroupListNotifier {
         return state.value!;
       }
     });
+  }
+
+  Future<void> updateGroup({
+    required String id,
+    required String name,
+    required bool visibility,
+  }) async {
+    // Add the new todo and reload the todo list from the remote repository
+    state = await AsyncValue.guard(() async {
+      bool updated = await ref.read(groupRepositoryProvider).updateGroup(groupId: id, name: name, visibility: visibility);
+      if (updated) {
+        return state.value!.map((e) => e.id == int.parse(id) ? e.copyWith(name: name, visibility: visibility) : e).toList();
+      } else {
+        return state.value!;
+      }
+    });
+  }
+
+  Future<void> deleteGroup({
+    required int id,
+  }) async {
+    // Add the new todo and reload the todo list from the remote repository
+    state = await AsyncValue.guard(() async {
+      bool deleted = await ref.read(groupRepositoryProvider).deleteGroup(groupId: id);
+      if (deleted) {
+        return state.value!.where((element) => element.id != id).toList();
+      } else {
+        return state.value!;
+      }
+    });
+  }
+
+  GroupModel getGroupById(int groupId) {
+    return state.value!.firstWhere((element) => element.id == groupId);
   }
 }
