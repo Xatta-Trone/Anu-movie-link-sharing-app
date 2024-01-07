@@ -1,5 +1,4 @@
 import 'package:anu3/core/core.dart';
-import 'package:anu3/group/api/group_repository.dart';
 import 'package:anu3/group/group.dart';
 import 'package:anu3/group/providers/group_list_notifier_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -14,36 +13,26 @@ class GroupHomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(groupListNotifierProvider);
 
-    // Let's render the todos in a scrollable list view
-    return groups.when(
-      data: (List<GroupModel> data) {
-        return ListView(
-          children: [for (final todo in data) ListTile(title: Text(todo.name))],
-        );
-      },
-      error: (Object error, StackTrace stackTrace) => Text('Error: $error'),
-      loading: () => const SafeArea(
-          child: Center(
-              child: CircularProgressIndicator(
-        color: Color.fromRGBO(0, 0, 0, 1),
-      ))),
-    );
-    return switch (groups) {
-      AsyncData(:final value) => ListView(
-          children: [for (final todo in value) ListTile(title: Text(todo.name))],
-        ),
-      AsyncError(:final error) => Text('Error: $error'),
-      _ => const Center(
-          child: Text('loading....'),
-        ),
-    };
-        
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('ANU'),
-          elevation: 8.0,
+      appBar: AppBar(
+        title: const Text('ANU'),
+        elevation: 8.0,
+      ),
+      body: groups.when(
+        data: (List<GroupModel> groups) {
+          if (groups.isEmpty) {
+            return const NoGroupWidget();
+          }
+
+          return ListView(
+            children: [for (final group in groups) ListTile(title: Text(group.name))],
+          );
+        },
+        error: (Object error, StackTrace stackTrace) => Text('Error: $error'),
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
         ),
-      body: NoGroupWidget(ref: ref),
+      ),
     );
   }
 }
@@ -51,10 +40,7 @@ class GroupHomePage extends ConsumerWidget {
 class NoGroupWidget extends StatelessWidget {
   const NoGroupWidget({
     super.key,
-    required this.ref,
   });
-
-  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -81,16 +67,6 @@ class NoGroupWidget extends StatelessWidget {
           TextButton(
             style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
             onPressed: () {
-              if (kDebugMode) {
-                print('Join group page');
-              }
-            },
-            child: const Text("Join a group"),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
-            onPressed: () {
-              ref.read(groupRepositoryProvider).getGroups();
               if (kDebugMode) {
                 print('Join group page');
               }
