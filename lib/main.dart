@@ -1,6 +1,4 @@
-import 'package:anu3/auth/auth.dart';
 import 'package:anu3/core/core.dart';
-import 'package:anu3/dashboard/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +26,7 @@ class MyApp extends ConsumerWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 245, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellowAccent),
         // colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         useMaterial3: true,
       ),

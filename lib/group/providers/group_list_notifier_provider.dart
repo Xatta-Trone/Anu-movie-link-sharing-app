@@ -10,11 +10,11 @@ class GroupListNotifier extends _$GroupListNotifier {
 
   @override
   Future<List<GroupModel>> build() async {
-    _fetchGroups(page: 1);
+    // _fetchGroups(page: 1);
     return <GroupModel>[];
   }
 
-  Future<void> _fetchGroups({int page = 1}) async {
+  Future<void> fetchGroups({int page = 1}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => ref.read(groupRepositoryProvider).getGroups(page: page));
   }

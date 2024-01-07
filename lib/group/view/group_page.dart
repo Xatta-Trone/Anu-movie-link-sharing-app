@@ -7,11 +7,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class GroupHomePage extends ConsumerWidget {
+class GroupHomePage extends ConsumerStatefulWidget {
   const GroupHomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GroupHomePage> createState() => _GroupHomePageState();
+}
+
+class _GroupHomePageState extends ConsumerState<GroupHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () => ref.read(groupListNotifierProvider.notifier).fetchGroups());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final groups = ref.watch(groupListNotifierProvider);
     final user = ref.watch(authUserProvider).asData?.value;
 
@@ -27,14 +38,14 @@ class GroupHomePage extends ConsumerWidget {
         },
         child: const Icon(Icons.add_circle_outline),
       ),
-      body: groups.when(
-        data: (List<GroupModel> groups) {
-          if (groups.isEmpty) {
-            return const NoGroupWidget();
-          }
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(groupListNotifierProvider.future),
-            child: ListView(
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(groupListNotifierProvider.notifier).fetchGroups(),
+        child: groups.when(
+          data: (List<GroupModel> groups) {
+            if (groups.isEmpty) {
+              return const NoGroupWidget();
+            }
+            return ListView(
               children: [
                 for (final group in groups)
                   GestureDetector(
@@ -79,12 +90,12 @@ class GroupHomePage extends ConsumerWidget {
                     ),
                   )
               ],
-            ),
-          );
-        },
-        error: (Object error, StackTrace stackTrace) => Text('Error: $error'),
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
+            );
+          },
+          error: (Object error, StackTrace stackTrace) => Text('Error: $error'),
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
       ),
     );
