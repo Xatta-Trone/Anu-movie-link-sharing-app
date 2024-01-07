@@ -12,9 +12,10 @@ GroupRepository groupRepository(GroupRepositoryRef _) => GroupRepository();
 class GroupRepository {
   final _client = Supabase.instance.client;
 
-  var groups = <List<GroupModel>>[];
+  var groups = <GroupModel>[];
+  int currentPage = 1;
 
-  Future<void> getGroups({int page = 1}) async {
+  Future<List<GroupModel>> getGroups({int page = 1}) async {
     final userId = _client.auth.currentSession?.user.id;
 
     const perPage = 10;
@@ -25,14 +26,15 @@ class GroupRepository {
       throw 'Not logged in';
     }
 
-    final response = await _client.from('groups').select('*, group_user!inner(*)').eq('group_user.user_id', userId).range(from, to);
-
+    final response = await _client.from('groups').select('*, group_user!inner()').eq('group_user.user_id', userId).range(from, to);
     if (kDebugMode) {
       print(response.toString());
     }
+
+    return response.map<GroupModel>((json) => GroupModel.fromJson(json)).toList();
   }
 
-  Future<void> addGroup({
+  Future<GroupModel?> addGroup({
     required String name,
     required bool visibility,
   }) async {
@@ -71,7 +73,7 @@ class GroupRepository {
       if (response.isNotEmpty) {
         final groupModel = GroupModel.fromJson(response[0]);
         addMemberToGroup(groupId: groupModel.id.toString(), memberId: userId, isAdmin: true, isPending: false);
-        groups.add([groupModel]);
+        return groupModel;
       }
 
       if (kDebugMode) {
@@ -86,7 +88,9 @@ class GroupRepository {
       } else {
         throw "An error occurred creating the group";
       }
+
     }
+    return null;
   }
 
   Future<void> addMemberToGroup({required String groupId, required String memberId, bool isAdmin = false, bool isPending = true}) async {

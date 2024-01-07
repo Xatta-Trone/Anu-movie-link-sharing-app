@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:anu3/group/api/group_repository.dart';
+import 'package:anu3/group/providers/group_list_notifier_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,12 +24,16 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
     final isPrivate = _selectedPrivacy[0] == true;
 
     try {
-      ref.read(groupRepositoryProvider).addGroup(name: _groupNameController.text, visibility: isPrivate);
+      ref.read(groupListNotifierProvider.notifier).addGroup(name: _groupNameController.text, visibility: isPrivate);
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Group created')),
       );
       _groupNameController.clear();
+      if (mounted) {
+        // sleep(const Duration(seconds: 1));
+        Navigator.pop(context);
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
