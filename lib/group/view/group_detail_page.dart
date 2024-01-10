@@ -1,0 +1,58 @@
+import 'package:anu3/core/core.dart';
+import 'package:anu3/group/group.dart';
+import 'package:anu3/group/providers/group_list_notifier_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+// ignore: must_be_immutable
+class GroupDetailPage extends ConsumerStatefulWidget {
+  String? groupId;
+  GroupDetailPage({super.key, this.groupId});
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _GroupDetailPageState();
+}
+
+class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
+  late GroupModel group;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.groupId != null) {
+      if (kDebugMode) {
+        print(widget.groupId);
+      }
+      group = ref.read(groupListNotifierProvider.notifier).getGroupById(int.parse(widget.groupId!));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Group details ${group.code}'),
+          elevation: double.infinity,
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            context.pushNamed(
+              movieFormRoute,
+              queryParameters: {
+                'group_id': "${group.id}",
+              },
+            );
+          },
+          key: const Key('create-movie-action-button'),
+          child: const Icon(Icons.add_box_outlined),
+        ),
+        body: const Center(
+          child: Column(
+            children: [
+              Text('Group details page'),
+            ],
+          ),
+        ));
+  }
+}

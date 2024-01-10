@@ -49,18 +49,22 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
               children: [
                 for (final group in groups)
                   GestureDetector(
-                    onTap: user?.id == group.userId
-                        ? () {
-                            // ignore: avoid_print
-                            print(group.id);
-                            // context.pushNamed(
-                            //   createGroupRoute,
-                            //   queryParameters: {
-                            //     'group_id': "${group.id}",
-                            //   },
-                            // );
-                          }
-                        : null,
+                    onTap: () {
+                      // ignore: avoid_print
+                      print(group.id);
+                      // context.pushNamed(
+                      //   createGroupRoute,
+                      //   queryParameters: {
+                      //     'group_id': "${group.id}",
+                      //   },
+                      // );
+                      context.pushNamed(
+                        groupDetailsRoute,
+                        queryParameters: {
+                          'group_id': "${group.id}",
+                        },
+                      );
+                    },
                     child: ListTile(
                       title: Text("${group.name} | ${group.visibility ? 'Public' : 'Private'}"),
                       trailing: user?.id == group.userId

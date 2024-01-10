@@ -178,6 +178,7 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
               ],
             ),
           ),
-        ));
+      ),
+    );
   }
 }
