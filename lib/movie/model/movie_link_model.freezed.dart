@@ -23,7 +23,7 @@ mixin _$MovieLinkModel {
   int get id => throw _privateConstructorUsedError;
   String get link => throw _privateConstructorUsedError;
   @JsonKey(name: 'movie_id')
-  String get movieId => throw _privateConstructorUsedError;
+  int get movieId => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
   DateTime get createdAt => throw _privateConstructorUsedError;
 
@@ -42,7 +42,7 @@ abstract class $MovieLinkModelCopyWith<$Res> {
   $Res call(
       {int id,
       String link,
-      @JsonKey(name: 'movie_id') String movieId,
+      @JsonKey(name: 'movie_id') int movieId,
       @JsonKey(name: 'created_at') DateTime createdAt});
 }
 
@@ -76,7 +76,7 @@ class _$MovieLinkModelCopyWithImpl<$Res, $Val extends MovieLinkModel>
       movieId: null == movieId
           ? _value.movieId
           : movieId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -96,7 +96,7 @@ abstract class _$$MovieLinkModelImplCopyWith<$Res>
   $Res call(
       {int id,
       String link,
-      @JsonKey(name: 'movie_id') String movieId,
+      @JsonKey(name: 'movie_id') int movieId,
       @JsonKey(name: 'created_at') DateTime createdAt});
 }
 
@@ -128,7 +128,7 @@ class __$$MovieLinkModelImplCopyWithImpl<$Res>
       movieId: null == movieId
           ? _value.movieId
           : movieId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -155,7 +155,7 @@ class _$MovieLinkModelImpl implements _MovieLinkModel {
   final String link;
   @override
   @JsonKey(name: 'movie_id')
-  final String movieId;
+  final int movieId;
   @override
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
@@ -200,7 +200,7 @@ abstract class _MovieLinkModel implements MovieLinkModel {
   const factory _MovieLinkModel(
           {required final int id,
           required final String link,
-          @JsonKey(name: 'movie_id') required final String movieId,
+          @JsonKey(name: 'movie_id') required final int movieId,
           @JsonKey(name: 'created_at') required final DateTime createdAt}) =
       _$MovieLinkModelImpl;
 
@@ -213,7 +213,7 @@ abstract class _MovieLinkModel implements MovieLinkModel {
   String get link;
   @override
   @JsonKey(name: 'movie_id')
-  String get movieId;
+  int get movieId;
   @override
   @JsonKey(name: 'created_at')
   DateTime get createdAt;

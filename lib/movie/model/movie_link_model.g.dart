@@ -10,7 +10,7 @@ _$MovieLinkModelImpl _$$MovieLinkModelImplFromJson(Map<String, dynamic> json) =>
     _$MovieLinkModelImpl(
       id: json['id'] as int,
       link: json['link'] as String,
-      movieId: json['movie_id'] as String,
+      movieId: json['movie_id'] as int,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
 

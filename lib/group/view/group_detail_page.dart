@@ -1,6 +1,8 @@
 import 'package:anu3/core/core.dart';
 import 'package:anu3/group/group.dart';
 import 'package:anu3/group/providers/group_list_notifier_provider.dart';
+import 'package:anu3/movie/provider/movie_list_provider.dart';
+import 'package:anu3/movie/view/movie_list.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +27,14 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
         print(widget.groupId);
       }
       group = ref.read(groupListNotifierProvider.notifier).getGroupById(int.parse(widget.groupId!));
+
+      Future.delayed(
+        Duration.zero,
+        () => ref.read(movieListNotifierProvider.notifier).fetchMovies(
+              groupId: widget.groupId!,
+            ),
+      );
+
     }
   }
 
@@ -47,12 +57,9 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
           key: const Key('create-movie-action-button'),
           child: const Icon(Icons.add_box_outlined),
         ),
-        body: const Center(
-          child: Column(
-            children: [
-              Text('Group details page'),
-            ],
-          ),
-        ));
+      body: MovieListPage(
+        groupId: "${group.id}",
+      ),
+    );
   }
 }

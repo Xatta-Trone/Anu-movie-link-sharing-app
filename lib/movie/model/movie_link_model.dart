@@ -8,7 +8,7 @@ class MovieLinkModel with _$MovieLinkModel {
   const factory MovieLinkModel({
     required int id,
     required String link,
-    @JsonKey(name: 'movie_id') required String movieId,
+    @JsonKey(name: 'movie_id') required int movieId,
     @JsonKey(name: 'created_at') required DateTime createdAt,
   }) = _MovieLinkModel;
 

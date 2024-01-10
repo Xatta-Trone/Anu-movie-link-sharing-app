@@ -59,11 +59,13 @@ final router = GoRouter(
       path: '/movie-form',
       builder: (context, state) {
         final groupId = state.uri.queryParameters['group_id'];
+        final movieId = state.uri.queryParameters['movie_id'];
         if (kDebugMode) {
           print('Group ID: $groupId');
         }
         return MovieFormPage(
           groupId: groupId,
+          movieId: movieId,
         );
       },
     ),

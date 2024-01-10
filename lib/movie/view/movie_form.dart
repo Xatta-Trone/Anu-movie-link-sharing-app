@@ -1,6 +1,9 @@
 import 'package:anu3/group/group.dart';
 import 'package:anu3/group/providers/group_list_notifier_provider.dart';
 import 'package:anu3/movie/api/movie_repository.dart';
+import 'package:anu3/movie/model/movie_link_model.dart';
+import 'package:anu3/movie/model/movie_model.dart';
+import 'package:anu3/movie/provider/movie_list_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,13 +21,45 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
   late GroupModel group;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
     if (widget.groupId != null) {
       if (kDebugMode) {
         print(widget.groupId);
       }
       group = ref.read(groupListNotifierProvider.notifier).getGroupById(int.parse(widget.groupId!));
+    }
+
+    if (widget.movieId != null) {
+      if (kDebugMode) {
+        print("movie id ${widget.movieId}");
+      }
+      MovieModel movie = ref.read(movieListNotifierProvider.notifier).getMovieById(int.parse(widget.movieId!));
+
+      if (kDebugMode) {
+        print(movie);
+      }
+
+      _movieName.text = movie.title;
+      _movieCategories.text = movie.categories.join(',');
+      _moviePoster.text = movie.poster ?? ''.toString();
+      _movieRating.text = movie.rating.toString();
+
+      _addLinks(movie.id);
+    }
+  }
+
+  Future<void> _addLinks(int movieId) async {
+    List<MovieLinkModel> links = await ref.read(movieRepositoryProvider).getLinks(movieId: movieId);
+    if (kDebugMode) {
+      print(links.map((e) => e.link).toList());
+    }
+    setState(() {
+      _movieLinks.addAll(links.map((e) => e.link).toList());
+    });
+
+    if (kDebugMode) {
+      print(_movieLinks);
     }
   }
 
@@ -34,7 +69,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
   final _movieCategories = TextEditingController();
   final _moviePoster = TextEditingController();
   final _movieRating = TextEditingController();
-  final _movieLinks = <String>[""];
+  var _movieLinks = <String>[""];
   bool _isSubmitting = false;
 
   handleSubmit(BuildContext context) {
@@ -198,6 +233,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                   return Column(children: [
                     TextFormField(
                       keyboardType: TextInputType.url,
+                      initialValue: _movieLinks[index],
                       decoration: InputDecoration(
                         hintText: 'Link',
                         filled: true,
