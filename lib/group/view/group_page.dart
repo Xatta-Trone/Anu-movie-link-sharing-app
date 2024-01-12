@@ -18,13 +18,14 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, () => ref.read(groupListNotifierProvider.notifier).fetchGroups());
+    Future.delayed(Duration.zero, () => ref.read(groupListNotifierProvider.notifier).fetchFresh());
   }
 
   @override
   Widget build(BuildContext context) {
     final groups = ref.watch(groupListNotifierProvider);
     final user = ref.watch(authUserProvider).asData?.value;
+    final notifier = ref.read(groupListNotifierProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -39,61 +40,69 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
         child: const Icon(Icons.add_circle_outline),
       ),
       body: RefreshIndicator(
-        onRefresh: () => ref.read(groupListNotifierProvider.notifier).fetchGroups(),
+        onRefresh: () => notifier.fetchFresh(),
         child: groups.when(
           data: (List<GroupModel> groups) {
             if (groups.isEmpty) {
               return const NoGroupWidget();
             }
-            return ListView(
-              children: [
-                for (final group in groups)
-                  GestureDetector(
-                    onTap: () {
-                      // ignore: avoid_print
-                      print(group.id);
-                      // context.pushNamed(
-                      //   createGroupRoute,
-                      //   queryParameters: {
-                      //     'group_id': "${group.id}",
-                      //   },
-                      // );
-                      context.pushNamed(
-                        groupDetailsRoute,
-                        queryParameters: {
-                          'group_id': "${group.id}",
+
+            return ListView.builder(
+              itemCount: groups.length + 1,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 100.0),
+                child: (index == groups.length)
+                    ? TextButton(
+                        onPressed: () {
+                          notifier.fetchNextPage();
                         },
-                      );
-                    },
-                    child: ListTile(
-                      title: Text("${group.name} | ${group.visibility ? 'Public' : 'Private'}"),
-                      trailing: user?.id == group.userId
-                          ? PopupMenuButton<void Function()>(
-                              offset: const Offset(10, 10),
-                              padding: const EdgeInsets.all(0.0),
-                              itemBuilder: (context) {
-                                return [
-                                  PopupMenuItem(
-                                    value: () => context.pushNamed(
-                                      createGroupRoute,
-                                      queryParameters: {
-                                        'group_id': "${group.id}",
-                                      },
-                                    ),
-                                    child: const Text('Edit'),
-                                  ),
-                                  PopupMenuItem(
-                                    value: () => ref.read(groupListNotifierProvider.notifier).deleteGroup(id: group.id),
-                                    child: const Text('Delete'),
-                                  ),
-                                ];
-                              },
-                              onSelected: (fn) => fn(),
-                            )
-                          : null,
-                    ),
-                  )
-              ],
+                        child: Text(notifier.hasMore ? 'load more' : 'end of list'))
+                    : GestureDetector(
+                        onTap: () {
+                          // ignore: avoid_print
+                          print(groups[index].id);
+                          // context.pushNamed(
+                          //   createGroupRoute,
+                          //   queryParameters: {
+                          //     'group_id': "${group.id}",
+                          //   },
+                          // );
+                          context.pushNamed(
+                            groupDetailsRoute,
+                            queryParameters: {
+                              'group_id': "${groups[index].id}",
+                            },
+                          );
+                        },
+                        child: ListTile(
+                          title: Text("${groups[index].name} | ${groups[index].visibility ? 'Public' : 'Private'}"),
+                          trailing: user?.id == groups[index].userId
+                              ? PopupMenuButton<void Function()>(
+                                  offset: const Offset(10, 10),
+                                  padding: const EdgeInsets.all(0.0),
+                                  itemBuilder: (context) {
+                                    return [
+                                      PopupMenuItem(
+                                        value: () => context.pushNamed(
+                                          createGroupRoute,
+                                          queryParameters: {
+                                            'group_id': "${groups[index].id}",
+                                          },
+                                        ),
+                                        child: const Text('Edit'),
+                                      ),
+                                      PopupMenuItem(
+                                        value: () => notifier.deleteGroup(id: groups[index].id),
+                                        child: const Text('Delete'),
+                                      ),
+                                    ];
+                                  },
+                                  onSelected: (fn) => fn(),
+                                )
+                              : null,
+                        ),
+                      ),
+              ),
             );
           },
           error: (Object error, StackTrace stackTrace) => Text('Error: $error'),

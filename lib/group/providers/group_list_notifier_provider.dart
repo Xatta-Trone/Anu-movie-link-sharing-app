@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_public_notifier_properties
 import 'package:anu3/group/api/group_repository.dart';
 import 'package:anu3/group/group.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -7,6 +8,8 @@ part 'group_list_notifier_provider.g.dart';
 @Riverpod(keepAlive: true)
 class GroupListNotifier extends _$GroupListNotifier {
   int _page = 1;
+  int perPage = 3;
+  bool hasMore = true;
 
   @override
   Future<List<GroupModel>> build() async {
@@ -14,9 +17,36 @@ class GroupListNotifier extends _$GroupListNotifier {
     return <GroupModel>[];
   }
 
-  Future<void> fetchGroups({int page = 1}) async {
+  Future<void> fetchGroups({required int page, bool resetValue = false}) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => ref.read(groupRepositoryProvider).getGroups(page: page));
+    state = await AsyncValue.guard(() async {
+      var data = await ref.read(groupRepositoryProvider).getGroups(page: page, perPage: perPage);
+      if (data.length < perPage) {
+        hasMore = false;
+      } else {
+        hasMore = true;
+      }
+      _page++;
+
+      if (resetValue) {
+        return data;
+      }
+
+      return state.value! + data;
+    });
+  }
+
+  void fetchNextPage() {
+    if (hasMore) {
+      fetchGroups(page: _page);
+    }
+  }
+
+  Future<void> fetchFresh() {
+    _page = 1;
+    hasMore = true;
+    fetchGroups(page: _page, resetValue: true);
+    return Future.value();
   }
 
   Future<void> addGroup({

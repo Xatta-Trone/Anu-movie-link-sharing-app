@@ -15,12 +15,10 @@ class GroupRepository {
   var groups = <GroupModel>[];
   int currentPage = 1;
 
-  Future<List<GroupModel>> getGroups({int page = 1}) async {
+  Future<List<GroupModel>> getGroups({int page = 1, int perPage = 3}) async {
     final userId = _client.auth.currentSession?.user.id;
-
-    const perPage = 10;
     final from = (page - 1) * perPage;
-    final to = page * perPage;
+    final to = page * perPage - 1;
 
     if (userId == null) {
       throw 'Not logged in';
