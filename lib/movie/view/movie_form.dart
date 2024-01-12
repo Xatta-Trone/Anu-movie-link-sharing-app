@@ -7,6 +7,7 @@ import 'package:anu3/movie/provider/movie_list_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 // ignore: must_be_immutable
 class MovieFormPage extends ConsumerStatefulWidget {
@@ -105,6 +106,11 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           if (kDebugMode) {
             print('value');
             print(value);
+            ref.read(movieListNotifierProvider.notifier).addMovie(movie: value!);
+          }
+
+          if (mounted) {
+            context.pop();
           }
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +162,12 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           .then(
         (value) {
           if (kDebugMode) {
+            ref.read(movieListNotifierProvider.notifier).updateMovie(movie: value!);
             print(value);
+          }
+
+          if (mounted) {
+            context.pop();
           }
 
           ScaffoldMessenger.of(context).showSnackBar(

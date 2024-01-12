@@ -16,7 +16,7 @@ class MovieListNotifier extends _$MovieListNotifier {
     state = await AsyncValue.guard(() => ref.read(movieRepositoryProvider).getMovies(page: page, groupId: groupId));
   }
 
-  Future<void> addGroup({
+  Future<void> addMovie({
     required MovieModel movie,
   }) async {
     // Set the state to loading
@@ -24,6 +24,17 @@ class MovieListNotifier extends _$MovieListNotifier {
     // Add the new todo and reload the todo list from the remote repository
     state = await AsyncValue.guard(() async {
       return [movie, ...state.value!];
+    });
+  }
+
+  Future<void> updateMovie({
+    required MovieModel movie,
+  }) async {
+    // Set the state to loading
+    state = const AsyncValue.loading();
+    // Add the new todo and reload the todo list from the remote repository
+    state = await AsyncValue.guard(() async {
+      return state.value!.map((e) => e.id == movie.id ? movie : e).toList();
     });
   }
 
