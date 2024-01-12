@@ -39,15 +39,13 @@ class MovieRepository {
     return response.map<MovieLinkModel>((json) => MovieLinkModel.fromJson(json)).toList();
   }
 
-
-
   Future<MovieModel?> addMovie({
     required String title,
     String? poster,
     required double rating,
     required List categories,
     required String groupId,
-    required List links,
+    required List<MovieLinkModel> links,
   }) async {
     late MovieModel? movieModel;
     final userId = _client.auth.currentSession?.user.id;
@@ -86,14 +84,18 @@ class MovieRepository {
         var links0 = links
             .map((e) => {
                   'movie_id': movieModel?.id,
-                  'link': e,
+                  'link': e.link,
                 })
             .toList();
-        final linksResponse = await _client.from('movie_links').insert(links0).select();
+        if (kDebugMode) {
+          print('links0');
+          print(links0);
+        }
+        var linksResponse = await _client.from('movie_links').insert(links0).select();
 
         if (kDebugMode) {
+          print('linksResponse');
           print(linksResponse);
-          print(links0);
         }
 
         return movieModel;
@@ -112,6 +114,91 @@ class MovieRepository {
     }
 
     return null;
+  }
+
+  Future<MovieModel?> updateMovie({
+    required int id,
+    required String title,
+    String? poster,
+    required double rating,
+    required List categories,
+    required List<MovieLinkModel> links,
+  }) async {
+    late MovieModel? movieModel;
+
+    if (kDebugMode) {
+      print(links);
+    }
+
+    try {
+      final response = await _client.from('movies').update({
+        'title': title,
+        'poster': poster,
+        'rating': rating,
+        'categories': categories,
+      }).match({'id': id}).select();
+
+      if (kDebugMode) {
+        print('response');
+        print(response);
+      }
+
+      if (response.isNotEmpty) {
+        movieModel = MovieModel.fromJson(response[0]);
+
+        if (kDebugMode) {
+          print(movieModel);
+        }
+
+        // get the current links
+        var movieLinks = await getLinks(movieId: id);
+
+        if (kDebugMode) {
+          print('movieLinks');
+          print(movieLinks);
+        }
+
+        if (links.isNotEmpty) {
+          var links0 = links.map((e) {
+            return e.id != null ? {'id': e.id, 'link': e.link, 'movie_id': e.movieId} : {'link': e.link, 'movie_id': id};
+          }).toList();
+          // upsert links
+          if (kDebugMode) {
+            print('links to upsert');
+            print(links0);
+          }
+          var linksResponse = await _client.from('movie_links').upsert(links0, onConflict: 'id', defaultToNull: false).select();
+
+          if (kDebugMode) {
+            print(linksResponse);
+          }
+        }
+
+        return movieModel;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      throw "Could not update movie";
+    }
+
+    return null;
+  }
+
+  Future<bool> deleteMovieLink({required int id}) async {
+    try {
+      var deleted = await _client.from('movie_links').delete().match({'id': id});
+      if (kDebugMode) {
+        print(deleted);
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return false;
+    }
   }
 
   Future<bool> deleteMovie({required int movieId}) async {

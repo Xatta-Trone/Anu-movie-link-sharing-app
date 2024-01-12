@@ -8,10 +8,12 @@ part of 'movie_link_model.dart';
 
 _$MovieLinkModelImpl _$$MovieLinkModelImplFromJson(Map<String, dynamic> json) =>
     _$MovieLinkModelImpl(
-      id: json['id'] as int,
+      id: json['id'] as int?,
       link: json['link'] as String,
-      movieId: json['movie_id'] as int,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      movieId: json['movie_id'] as int?,
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'] as String),
     );
 
 Map<String, dynamic> _$$MovieLinkModelImplToJson(
@@ -20,5 +22,5 @@ Map<String, dynamic> _$$MovieLinkModelImplToJson(
       'id': instance.id,
       'link': instance.link,
       'movie_id': instance.movieId,
-      'created_at': instance.createdAt.toIso8601String(),
+      'created_at': instance.createdAt?.toIso8601String(),
     };

@@ -46,6 +46,8 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
       _movieRating.text = movie.rating.toString();
 
       _addLinks(movie.id);
+    } else {
+      _movieLinks.add(const MovieLinkModel(link: ''));
     }
   }
 
@@ -55,7 +57,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
       print(links.map((e) => e.link).toList());
     }
     setState(() {
-      _movieLinks.addAll(links.map((e) => e.link).toList());
+      _movieLinks.addAll(links);
     });
 
     if (kDebugMode) {
@@ -69,10 +71,18 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
   final _movieCategories = TextEditingController();
   final _moviePoster = TextEditingController();
   final _movieRating = TextEditingController();
-  var _movieLinks = <String>[""];
+  final _movieLinks = List<MovieLinkModel>.empty(growable: true);
   bool _isSubmitting = false;
 
   handleSubmit(BuildContext context) {
+    if (widget.movieId != null) {
+      return handleUpdate(context);
+    } else {
+      return handleCreate(context);
+    }
+  }
+
+  handleCreate(BuildContext context) {
     setState(() {
       _isSubmitting = true;
     });
@@ -93,6 +103,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           .then(
         (value) {
           if (kDebugMode) {
+            print('value');
             print(value);
           }
 
@@ -122,6 +133,79 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
 
     setState(() {
       _isSubmitting = false;
+    });
+  }
+
+  handleUpdate(BuildContext context) {
+    setState(() {
+      _isSubmitting = true;
+    });
+    // create movie
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    try {
+      ref
+          .read(movieRepositoryProvider)
+          .updateMovie(
+            id: int.parse(widget.movieId!),
+            title: _movieName.text,
+            rating: double.parse(_movieRating.text).toDouble(),
+            categories: _movieCategories.text.split(','),
+            links: _movieLinks,
+          )
+          .then(
+        (value) {
+          if (kDebugMode) {
+            print(value);
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Movie updated...')),
+          );
+
+          _formKey.currentState!.reset();
+        },
+      ).catchError((error) {
+        if (kDebugMode) {
+          print(error);
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error updating group')),
+      );
+    }
+
+    setState(() {
+      _isSubmitting = false;
+    });
+  }
+
+  void removeLink(int index, BuildContext context) {
+    if (_movieLinks[index].id != null) {
+      ref.read(movieRepositoryProvider).deleteMovieLink(id: _movieLinks[index].id!).then((value) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        if (value) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Link deleted')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not delete the link')),
+          );
+        }
+      });
+    }
+
+    setState(() {
+      _movieLinks.removeAt(index);
     });
   }
 
@@ -229,66 +313,72 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                 const SizedBox(
                   height: 15.0,
                 ),
-                ...List.generate(_movieLinks.length, (index) {
-                  return Column(children: [
-                    TextFormField(
-                      keyboardType: TextInputType.url,
-                      initialValue: _movieLinks[index],
-                      decoration: InputDecoration(
-                        hintText: 'Link',
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide.none,
-                        ),
-                        suffixIcon: _movieLinks.length > 1
-                            ? IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  if (kDebugMode) {
-                                    print(_movieLinks);
-                                  }
-                                  setState(() {
-                                    _movieLinks.removeAt(index);
-                                  });
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ScrollPhysics(),
+                  itemCount: _movieLinks.length,
+                  itemBuilder: (context, index) {
+                    return Column(children: [
+                      TextFormField(
+                        key: Key(_movieLinks[index].link.toString()),
+                        keyboardType: TextInputType.url,
+                        initialValue: _movieLinks[index].link,
+                        decoration: InputDecoration(
+                          hintText: 'Link',
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            borderSide: BorderSide.none,
+                          ),
+                          suffixIcon: _movieLinks.length > 1
+                              ? IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () {
+                                    if (kDebugMode) {
+                                      print(_movieLinks);
+                                    }
+                                    removeLink(index, context);
 
-                                  if (kDebugMode) {
-                                    print('Delete');
-                                  }
-                                },
-                              )
-                            : null,
+                                    if (kDebugMode) {
+                                      print('Delete $index');
+                                      print(_movieLinks);
+                                    }
+                                  },
+                                )
+                              : null,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a movie link';
+                          }
+                          if (Uri.parse(value).isAbsolute == false) {
+                            return 'Please enter a valid movie link';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {
+                          _movieLinks[index] = _movieLinks[index].copyWith(link: value!);
+                        },
+                        onSaved: (value) {
+                          _movieLinks[index] = _movieLinks[index].copyWith(link: value!);
+                          if (kDebugMode) {
+                            print(value);
+                          }
+                        },
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a movie link';
-                        }
-                        if (Uri.parse(value).isAbsolute == false) {
-                          return 'Please enter a valid movie link';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          _movieLinks[index] = value!;
-                        });
-                        if (kDebugMode) {
-                          print(value);
-                        }
-                      },
-                    ),
-                    const SizedBox(
-                      height: 15.0,
-                    )
-                  ]);
-                }),
+                      const SizedBox(
+                        height: 15.0,
+                      )
+                    ]);
+                  },
+                ),
                 const SizedBox(
                   height: 15.0,
                 ),
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      _movieLinks.add('');
+                      _movieLinks.add(const MovieLinkModel(link: ''));
                     });
                   },
                   child: const Text('Add new link'),
@@ -310,6 +400,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
                               if (kDebugMode) {
+                                print('_movieLinks');
                                 print(_movieLinks);
                               }
                               ScaffoldMessenger.of(context).showSnackBar(

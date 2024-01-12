@@ -20,12 +20,12 @@ MovieLinkModel _$MovieLinkModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$MovieLinkModel {
-  int get id => throw _privateConstructorUsedError;
+  int? get id => throw _privateConstructorUsedError;
   String get link => throw _privateConstructorUsedError;
   @JsonKey(name: 'movie_id')
-  int get movieId => throw _privateConstructorUsedError;
+  int? get movieId => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
-  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime? get createdAt => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -40,10 +40,10 @@ abstract class $MovieLinkModelCopyWith<$Res> {
       _$MovieLinkModelCopyWithImpl<$Res, MovieLinkModel>;
   @useResult
   $Res call(
-      {int id,
+      {int? id,
       String link,
-      @JsonKey(name: 'movie_id') int movieId,
-      @JsonKey(name: 'created_at') DateTime createdAt});
+      @JsonKey(name: 'movie_id') int? movieId,
+      @JsonKey(name: 'created_at') DateTime? createdAt});
 }
 
 /// @nodoc
@@ -59,28 +59,28 @@ class _$MovieLinkModelCopyWithImpl<$Res, $Val extends MovieLinkModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? id = freezed,
     Object? link = null,
-    Object? movieId = null,
-    Object? createdAt = null,
+    Object? movieId = freezed,
+    Object? createdAt = freezed,
   }) {
     return _then(_value.copyWith(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as int?,
       link: null == link
           ? _value.link
           : link // ignore: cast_nullable_to_non_nullable
               as String,
-      movieId: null == movieId
+      movieId: freezed == movieId
           ? _value.movieId
           : movieId // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
+              as int?,
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -94,10 +94,10 @@ abstract class _$$MovieLinkModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
+      {int? id,
       String link,
-      @JsonKey(name: 'movie_id') int movieId,
-      @JsonKey(name: 'created_at') DateTime createdAt});
+      @JsonKey(name: 'movie_id') int? movieId,
+      @JsonKey(name: 'created_at') DateTime? createdAt});
 }
 
 /// @nodoc
@@ -111,28 +111,28 @@ class __$$MovieLinkModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? id = freezed,
     Object? link = null,
-    Object? movieId = null,
-    Object? createdAt = null,
+    Object? movieId = freezed,
+    Object? createdAt = freezed,
   }) {
     return _then(_$MovieLinkModelImpl(
-      id: null == id
+      id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as int?,
       link: null == link
           ? _value.link
           : link // ignore: cast_nullable_to_non_nullable
               as String,
-      movieId: null == movieId
+      movieId: freezed == movieId
           ? _value.movieId
           : movieId // ignore: cast_nullable_to_non_nullable
-              as int,
-      createdAt: null == createdAt
+              as int?,
+      createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
+              as DateTime?,
     ));
   }
 }
@@ -141,24 +141,24 @@ class __$$MovieLinkModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$MovieLinkModelImpl implements _MovieLinkModel {
   const _$MovieLinkModelImpl(
-      {required this.id,
+      {this.id,
       required this.link,
-      @JsonKey(name: 'movie_id') required this.movieId,
-      @JsonKey(name: 'created_at') required this.createdAt});
+      @JsonKey(name: 'movie_id') this.movieId,
+      @JsonKey(name: 'created_at') this.createdAt});
 
   factory _$MovieLinkModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$MovieLinkModelImplFromJson(json);
 
   @override
-  final int id;
+  final int? id;
   @override
   final String link;
   @override
   @JsonKey(name: 'movie_id')
-  final int movieId;
+  final int? movieId;
   @override
   @JsonKey(name: 'created_at')
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   @override
   String toString() {
@@ -198,25 +198,25 @@ class _$MovieLinkModelImpl implements _MovieLinkModel {
 
 abstract class _MovieLinkModel implements MovieLinkModel {
   const factory _MovieLinkModel(
-          {required final int id,
+          {final int? id,
           required final String link,
-          @JsonKey(name: 'movie_id') required final int movieId,
-          @JsonKey(name: 'created_at') required final DateTime createdAt}) =
+          @JsonKey(name: 'movie_id') final int? movieId,
+          @JsonKey(name: 'created_at') final DateTime? createdAt}) =
       _$MovieLinkModelImpl;
 
   factory _MovieLinkModel.fromJson(Map<String, dynamic> json) =
       _$MovieLinkModelImpl.fromJson;
 
   @override
-  int get id;
+  int? get id;
   @override
   String get link;
   @override
   @JsonKey(name: 'movie_id')
-  int get movieId;
+  int? get movieId;
   @override
   @JsonKey(name: 'created_at')
-  DateTime get createdAt;
+  DateTime? get createdAt;
   @override
   @JsonKey(ignore: true)
   _$$MovieLinkModelImplCopyWith<_$MovieLinkModelImpl> get copyWith =>
