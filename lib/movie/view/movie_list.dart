@@ -1,12 +1,13 @@
 import 'package:anu3/auth/auth.dart';
 import 'package:anu3/core/const.dart';
-import 'package:anu3/group/group.dart';
 import 'package:anu3/movie/model/movie_model.dart';
 import 'package:anu3/movie/provider/movie_list_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+// ignore: must_be_immutable
 class MovieListPage extends ConsumerStatefulWidget {
   String groupId;
   MovieListPage({super.key, required this.groupId});
@@ -25,7 +26,9 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
       child: movies.when(
         data: (List<MovieModel> movies) {
           if (movies.isEmpty) {
-            return const NoGroupWidget();
+            return NoMovieWidget(
+              groupId: widget.groupId,
+            );
           }
           return ListView(
             children: [
@@ -79,6 +82,43 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
+      ),
+    );
+  }
+}
+
+
+// ignore: must_be_immutable
+class NoMovieWidget extends StatelessWidget {
+  String groupId;
+  NoMovieWidget({
+    super.key,
+    required this.groupId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'No movies found.',
+          ),
+          const SizedBox(
+            height: 5.0,
+          ),
+          TextButton(
+            style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+            onPressed: () {
+              context.pushNamed(movieFormRoute, queryParameters: {'group_id': groupId});
+              if (kDebugMode) {
+                print('create group page');
+              }
+            },
+            child: const Text("Add a new movie"),
+          ),
+        ],
       ),
     );
   }

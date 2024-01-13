@@ -95,25 +95,29 @@ class GroupRepository {
     return null;
   }
 
-  Future<bool> updateGroup({
+  Future<GroupModel?> updateGroup({
     required String groupId,
     required String name,
     required bool visibility,
   }) async {
+    late GroupModel? group;
     try {
-      await _client.from('groups').update({
+      final response = await _client.from('groups').update({
         'name': name,
         'visibility': visibility,
       }).match({
         'id': groupId,
-      });
-      return true;
+      }).select();
+      if (response.isNotEmpty) {
+        group = GroupModel.fromJson(response[0]);
+      }
     } catch (e) {
       if (kDebugMode) {
         print(e);
       }
-      return false;
+      return null;
     }
+    return group;
   }
 
   Future<void> addMemberToGroup({required String groupId, required String memberId, bool isAdmin = false, bool isPending = true}) async {

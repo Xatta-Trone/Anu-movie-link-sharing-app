@@ -42,8 +42,7 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Group details ${group.code}'),
-          elevation: double.infinity,
+        title: Text('${group.name} - ${group.code}'),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {

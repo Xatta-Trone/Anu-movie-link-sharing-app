@@ -5,6 +5,7 @@
         "dotenv",
         "riverpod",
         "Supabase",
+        "unfocus",
         "upsert"
     ]
 }

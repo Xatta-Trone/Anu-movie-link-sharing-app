@@ -25,10 +25,49 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromRGBO(245, 245, 245, 1),
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellowAccent),
-        // colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
         useMaterial3: true,
+          colorScheme: const ColorScheme(
+            brightness: Brightness.light,
+            primary: Colors.black87,
+            onPrimary: Colors.white,
+            secondary: Colors.white,
+            onSecondary: Colors.black87,
+            error: Colors.red,
+            onError: Colors.black87,
+            background: Colors.white,
+            onBackground: Colors.black87,
+            surface: Colors.white,
+            onSurface: Colors.black87,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: const TextStyle(
+              color: Colors.black,
+            ),
+            fillColor: Colors.grey.shade200,
+            filled: true,
+            focusedBorder: const OutlineInputBorder(
+              borderSide: BorderSide(
+                style: BorderStyle.solid,
+                color: Colors.black87,
+              ),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(5),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          toggleButtonsTheme: ToggleButtonsThemeData(
+            borderColor: Colors.grey.shade200,
+            selectedBorderColor: Colors.black87,
+            selectedColor: Colors.white,
+            fillColor: Colors.black87,
+            color: Colors.black87,
+          ),
+          appBarTheme: const AppBarTheme(
+            color: Colors.black87,
+            foregroundColor: Colors.white,
+            elevation: 10.0,
+          )
       ),
       routerConfig: router,
     );
