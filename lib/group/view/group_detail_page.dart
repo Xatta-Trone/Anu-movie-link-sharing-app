@@ -34,28 +34,29 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
               groupId: widget.groupId!,
             ),
       );
-
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-        title: Text('${group.name} - ${group.code}'),
+      appBar: AppBar(
+        title: Text(
+          '${group.name} - ${group.code}',
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            context.pushNamed(
+        actions: [
+          IconButton(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            onPressed: () => context.pushNamed(
               movieFormRoute,
               queryParameters: {
                 'group_id': "${group.id}",
               },
-            );
-          },
-          key: const Key('create-movie-action-button'),
-          child: const Icon(Icons.add_box_outlined),
-        ),
+            ),
+            icon: const Icon(Icons.add),
+          )
+        ],
+      ),
       body: MovieListPage(
         groupId: "${group.id}",
       ),

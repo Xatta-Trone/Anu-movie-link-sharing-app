@@ -51,7 +51,7 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
         title: const Text('Groups'),
         actions: [
           IconButton(
-            padding: const EdgeInsets.only(right: 10.0),
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             onPressed: () => context.pushNamed(createGroupRoute),
             icon: const Icon(Icons.add),
           )
