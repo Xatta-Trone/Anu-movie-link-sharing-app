@@ -100,6 +100,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
             categories: _movieCategories.text.split(','),
             groupId: widget.groupId!,
             links: _movieLinks,
+            poster: _moviePoster.text == '' ? null : _moviePoster.text,
           )
           .then(
         (value) {
@@ -158,6 +159,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
             rating: double.parse(_movieRating.text).toDouble(),
             categories: _movieCategories.text.split(','),
             links: _movieLinks,
+            poster: _moviePoster.text == '' ? null : _moviePoster.text,
           )
           .then(
         (value) {
@@ -303,7 +305,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                   controller: _movieRating,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: 'Rating',
+                    hintText: 'Rating (0-10)',
                     filled: true,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
@@ -314,6 +316,20 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a rating';
                     }
+                    var val = double.tryParse(value)?.toDouble();
+
+                    if (kDebugMode) {
+                      print(val);
+                    }
+
+                    if (val == null || value.isEmpty) {
+                      return 'Please enter a valid rating (0-10)';
+                    }
+
+                    if ((val < 0 || val > 10.0)) {
+                      return 'Please enter a valid rating (0-10)';
+                    }
+
                     return null;
                   },
                 ),
