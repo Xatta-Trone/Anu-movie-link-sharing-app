@@ -13,6 +13,7 @@ class GroupListNotifier extends _$GroupListNotifier {
   int _page = 1;
   int perPage = 10;
   bool hasMore = true;
+  String searchQuery = "";
   Timer _timer = Timer(const Duration(milliseconds: 0), () {});
 
   @override
@@ -20,7 +21,7 @@ class GroupListNotifier extends _$GroupListNotifier {
     return <GroupModel>[];
   }
 
-  Future<void> fetchGroups({required int page, bool resetValue = false}) async {
+  Future<void> fetchGroups({required int page, bool resetValue = false, String searchQuery = ""}) async {
     if (resetValue == false && _timer.isActive) {
       return;
     }
@@ -32,7 +33,7 @@ class GroupListNotifier extends _$GroupListNotifier {
     _timer = Timer(const Duration(milliseconds: 500), () {});
 
     state = await AsyncValue.guard(() async {
-      var data = await ref.read(groupRepositoryProvider).getGroups(page: page, perPage: perPage);
+      var data = await ref.read(groupRepositoryProvider).getGroups(page: page, perPage: perPage, query: searchQuery);
       if (data.length < perPage) {
         hasMore = false;
       } else {
@@ -48,20 +49,25 @@ class GroupListNotifier extends _$GroupListNotifier {
     });
   }
 
-  Future<void> fetchNextPage() {
+  Future<void> fetchNextPage({String query = ""}) {
     if (hasMore) {
-      fetchGroups(page: _page);
+      if (kDebugMode) {
+        print(searchQuery);
+      }
+      fetchGroups(page: _page, searchQuery: query);
     }
     return Future.value();
   }
 
-  Future<void> fetchFresh() {
+  Future<void> fetchFresh({String query = ""}) {
     state = const AsyncValue.loading();
     _page = 1;
     hasMore = true;
-    fetchGroups(page: _page, resetValue: true);
+    searchQuery = query;
+    fetchGroups(page: _page, resetValue: true, searchQuery: query);
     return Future.value();
   }
+
 
   Future<void> addGroup({
     required GroupModel group,

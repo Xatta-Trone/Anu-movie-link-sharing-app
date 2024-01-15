@@ -70,7 +70,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
                             colors: [
-                              Colors.black.withOpacity(0.99),
+                            Colors.black.withOpacity(0.5),
                               Colors.black.withOpacity(.3),
                             ],
                           ),
@@ -174,7 +174,8 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                           ],
                         ),
                       ),
-                    ))
+                  ),
+                )
             ],
           );
         },

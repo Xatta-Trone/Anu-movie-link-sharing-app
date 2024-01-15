@@ -40,6 +40,8 @@ class MyApp extends ConsumerWidget {
             onSurface: Colors.black87,
           ),
           inputDecorationTheme: InputDecorationTheme(
+            isDense: true,
+            // contentPadding: const EdgeInsets.symmetric(horizontal: 5.0,vertical: 10.0),
             labelStyle: const TextStyle(
               color: Colors.black,
             ),
@@ -55,6 +57,7 @@ class MyApp extends ConsumerWidget {
               borderRadius: BorderRadius.circular(5),
               borderSide: BorderSide.none,
             ),
+            
           ),
           toggleButtonsTheme: ToggleButtonsThemeData(
             borderColor: Colors.grey.shade200,

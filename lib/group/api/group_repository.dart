@@ -15,7 +15,7 @@ class GroupRepository {
   var groups = <GroupModel>[];
   int currentPage = 1;
 
-  Future<List<GroupModel>> getGroups({int page = 1, int perPage = 3}) async {
+  Future<List<GroupModel>> getGroups({int page = 1, int perPage = 3, String query = ""}) async {
     final userId = _client.auth.currentSession?.user.id;
     final from = (page - 1) * perPage;
     final to = page * perPage - 1;
@@ -24,9 +24,26 @@ class GroupRepository {
       throw 'Not logged in';
     }
 
-    final response =
-        await _client.from('groups').select('*, group_user!inner()').eq('group_user.user_id', userId).range(from, to).order('id', ascending: false);
     if (kDebugMode) {
+      print(page);
+      print(query);
+    }
+
+    query = '%$query%';
+
+    if (kDebugMode) {
+      print(query);
+    }
+    final response = await _client
+        .from('groups')
+        .select('*, group_user!inner()')
+        .ilike('name', query)
+        .eq('group_user.user_id', userId)
+        .range(from, to)
+        .order('id', ascending: false);
+    if (kDebugMode) {
+      print('response');
+      print(query);
       print(response.toString());
     }
 

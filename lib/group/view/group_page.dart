@@ -17,12 +17,25 @@ class GroupHomePage extends ConsumerStatefulWidget {
 
 class _GroupHomePageState extends ConsumerState<GroupHomePage> {
   final _scrollController = ScrollController();
+  final _queryController = TextEditingController();
+
+  final _debouncer = Debouncer(milliseconds: 500);
 
   @override
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () => ref.read(groupListNotifierProvider.notifier).fetchFresh());
     _scrollController.addListener(_loadMore);
+    _queryController.addListener(_onQueryChanged);
+  }
+
+  void _onQueryChanged() {
+    _debouncer.run(() {
+      if (kDebugMode) {
+        print(_queryController.text);
+      }
+      ref.read(groupListNotifierProvider.notifier).fetchFresh(query: _queryController.text);
+    });
   }
 
   void _loadMore() {
@@ -30,13 +43,14 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
       if (kDebugMode) {
         print('Loading next batch');
       }
-      ref.read(groupListNotifierProvider.notifier).fetchNextPage();
+      ref.read(groupListNotifierProvider.notifier).fetchNextPage(query: _queryController.text);
     }
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _queryController.dispose();
     super.dispose();
   }
 
@@ -57,115 +71,141 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
           )
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   key: const Key('group-floating-action'),
-      //   onPressed: () {
-      //     context.pushNamed(createGroupRoute);
-      //   },
-      //   child: const Icon(Icons.add_circle_outline),
-      // ),
       body: RefreshIndicator(
         onRefresh: () => notifier.fetchFresh(),
-        child: groups.when(
-          data: (List<GroupModel> groups) {
-            if (groups.isEmpty) {
-              return const NoGroupWidget();
-            }
-
-            return ListView.builder(
-              controller: _scrollController,
-              itemCount: groups.length + 1,
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: (index == groups.length)
-                    ? notifier.hasMore
-                        ? const Center(child: CircularProgressIndicator())
-                        : const Center(child: Text('End of list'))
-                    : GestureDetector(
-                        onTap: () {
-                          if (kDebugMode) {
-                            print(groups[index].id);
-                          }
-                          context.pushNamed(
-                            groupDetailsRoute,
-                            queryParameters: {
-                              'group_id': "${groups[index].id}",
-                            },
-                          );
-                        },
-                        child: ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 10.0,
-                              horizontal: 10.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: const BorderRadius.all(Radius.circular(8)),
-                            ),
-                            child: const Icon(Icons.workspaces),
-                          ),
-                          title: Text(
-                            groups[index].name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Container(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Row(
-                              children: [
-                                GroupChipWidget(
-                                  text: groups[index].visibility ? 'Public' : 'Private',
-                                ),
-                                const SizedBox(width: 8.0),
-                                const GroupChipWidget(
-                                  text: '100 people',
-                                ),
-                                const SizedBox(width: 8.0),
-                                const GroupChipWidget(
-                                  text: '50 movies',
-                                ),
-                              ],
-                            ),
-                          ),
-                          trailing: user?.id == groups[index].userId
-                              ? PopupMenuButton<void Function()>(
-                                  padding: const EdgeInsets.all(0.0),
-                                  itemBuilder: (context) {
-                                    return [
-                                      PopupMenuItem(
-                                        value: () => context.pushNamed(
-                                          createGroupRoute,
-                                          queryParameters: {
-                                            'group_id': "${groups[index].id}",
-                                          },
-                                        ),
-                                        child: const Text('Edit group'),
-                                      ),
-                                      PopupMenuItem(
-                                        value: () => notifier.deleteGroup(id: groups[index].id),
-                                        child: const Text('Delete group'),
-                                      ),
-                                      PopupMenuItem(
-                                        value: () {
-                                          Clipboard.setData(ClipboardData(text: groups[index].code));
-                                        },
-                                        child: const Text('Copy group code'),
-                                      ),
-                                    ];
-                                  },
-                                  onSelected: (fn) => fn(),
-                                )
-                              : null,
-                        ),
-                      ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: TextFormField(
+                controller: _queryController,
+                decoration: InputDecoration(
+                  hintText: 'Search group...',
+                  suffixIcon: IconButton(
+                    onPressed: () => _queryController.clear(),
+                    icon: const Icon(Icons.cancel_rounded),
+                  ),
+                ),
               ),
-            );
-          },
-          error: (Object error, StackTrace stackTrace) => Text('Error: $error'),
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
-          ),
+            ),
+            groups.when(
+              data: (List<GroupModel> groups) {
+                if (groups.isEmpty) {
+                  return Flexible(
+                    child: NoGroupWidget(
+                      queryController: _queryController,
+                    ),
+                  );
+                }
+
+                return Flexible(
+                  child: ListView(
+                    controller: _scrollController,
+                    shrinkWrap: true,
+                    children: [
+                      for (final group in groups) ...[
+                        GestureDetector(
+                          onTap: () {
+                            if (kDebugMode) {
+                              print(group.id);
+                            }
+                            context.pushNamed(
+                              groupDetailsRoute,
+                              queryParameters: {
+                                'group_id': "${group.id}",
+                              },
+                            );
+                          },
+                          child: ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10.0,
+                                horizontal: 10.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                              ),
+                              child: const Icon(Icons.workspaces),
+                            ),
+                            title: Text(
+                              group.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Container(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Row(
+                                children: [
+                                  GroupChipWidget(
+                                    text: group.visibility ? 'Public' : 'Private',
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  const GroupChipWidget(
+                                    text: '100 people',
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  const GroupChipWidget(
+                                    text: '50 movies',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            trailing: user?.id == group.userId
+                                ? PopupMenuButton<void Function()>(
+                                    padding: const EdgeInsets.all(0.0),
+                                    itemBuilder: (context) {
+                                      return [
+                                        PopupMenuItem(
+                                          value: () => context.pushNamed(
+                                            createGroupRoute,
+                                            queryParameters: {
+                                              'group_id': "${group.id}",
+                                            },
+                                          ),
+                                          child: const Text('Edit group'),
+                                        ),
+                                        PopupMenuItem(
+                                          value: () => notifier.deleteGroup(id: group.id),
+                                          child: const Text('Delete group'),
+                                        ),
+                                        PopupMenuItem(
+                                          value: () {
+                                            Clipboard.setData(ClipboardData(text: group.code));
+                                          },
+                                          child: const Text('Copy group code'),
+                                        ),
+                                      ];
+                                    },
+                                    onSelected: (fn) => fn(),
+                                  )
+                                : null,
+                          ),
+                        ),
+                      ],
+                      notifier.hasMore
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 10.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          : const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 10.0),
+                                child: Text('End of list'),
+                              ),
+                            )
+                    ],
+                  ),
+                );
+              },
+              error: (Object error, StackTrace stackTrace) => Text('Error: $error'),
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -192,13 +232,17 @@ class GroupChipWidget extends StatelessWidget {
   }
 }
 
-class NoGroupWidget extends ConsumerWidget {
-  const NoGroupWidget({
-    super.key,
-  });
+class NoGroupWidget extends ConsumerStatefulWidget {
+  final TextEditingController queryController;
+  NoGroupWidget({super.key, required this.queryController});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NoGroupWidget> createState() => _NoGroupWidgetState();
+}
+
+class _NoGroupWidgetState extends ConsumerState<NoGroupWidget> {
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -231,7 +275,8 @@ class NoGroupWidget extends ConsumerWidget {
           TextButton(
             style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
             onPressed: () {
-              ref.read(groupListNotifierProvider.notifier).fetchFresh();
+              widget.queryController.clear();
+              // ref.read(groupListNotifierProvider.notifier).fetchFresh();
             },
             child: const Text("Refresh data"),
           ),
