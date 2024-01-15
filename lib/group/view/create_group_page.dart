@@ -17,7 +17,7 @@ class _CreateGroupPageState extends ConsumerState<CreateGroupPage> {
   final _formKey = GlobalKey<FormState>();
   final _groupNameController = TextEditingController();
   // 1st private 2nd public
-  final List<bool> _isPublic = <bool>[false, true];
+  final List<bool> _isPublic = <bool>[true, false];
   bool _isCreating = false;
 
   @override

@@ -137,31 +137,58 @@ class GroupRepository {
     return group;
   }
 
+  Future<GroupModel?> joinGroup({required String groupCode}) async {
+    late GroupModel? group;
+    try {
+      final res = await _client.from('groups').select().match({'code': groupCode});
+
+      if (res.isEmpty) {
+        throw "Group not found";
+      }
+
+      group = GroupModel.fromJson(res[0]);
+
+      final userId = _client.auth.currentSession?.user.id;
+
+      if (userId == null) {
+        throw 'Not logged in';
+      }
+
+      await addMemberToGroup(groupId: group.id.toString(), memberId: userId);
+
+      return group;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> addMemberToGroup({required String groupId, required String memberId, bool isAdmin = false, bool isPending = true}) async {
     try {
       final res = await _client.from('group_user').select('id').eq('user_id', memberId).eq('group_id', groupId).count(CountOption.exact);
 
-      if (res.count == 0) {
-        final response = await _client.from('group_user').insert({
-          'user_id': memberId,
-          'group_id': groupId,
-          'is_admin': isAdmin,
-          'is_pending': isPending,
-        }).select();
+      if (kDebugMode) {
+        print(res.count);
+      }
 
-        if (kDebugMode) {
-          print(response.toString());
-        }
+      if (res.count > 0) {
+        throw "User already in group";
+      }
+
+      final response = await _client.from('group_user').insert({
+        'user_id': memberId,
+        'group_id': groupId,
+        'is_admin': isAdmin,
+        'is_pending': isPending,
+      }).select();
+
+      if (kDebugMode) {
+        print(response.toString());
       }
     } catch (e) {
       if (kDebugMode) {
         print(e.toString());
       }
-      if (e.toString().contains('duplicate key value violates unique constraint "groups_code_key"')) {
-        throw "Group code already exists";
-      } else {
-        throw "An error occurred while inserting record";
-      }
+      rethrow;
     }
   }
 

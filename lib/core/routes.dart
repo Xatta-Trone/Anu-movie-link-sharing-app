@@ -1,6 +1,7 @@
 import 'package:anu3/auth/auth.dart';
 import 'package:anu3/core/core.dart';
 import 'package:anu3/dashboard/dashboard.dart';
+import 'package:anu3/group/group.dart';
 import 'package:anu3/group/view/create_group_page.dart';
 import 'package:anu3/group/view/group_detail_page.dart';
 import 'package:anu3/movie/view/movie_form.dart';
@@ -39,6 +40,13 @@ final router = GoRouter(
         return CreateGroupPage(
           groupId: groupId,
         );
+      },
+    ),
+    GoRoute(
+      name: joinGroupRoute,
+      path: '/join-group',
+      builder: (context, state) {
+        return const JoinGroupPage();
       },
     ),
     GoRoute(

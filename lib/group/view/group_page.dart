@@ -66,6 +66,11 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
         actions: [
           IconButton(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            onPressed: () => context.pushNamed(joinGroupRoute),
+            icon: const Icon(Icons.group_add_outlined),
+          ),
+          IconButton(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             onPressed: () => context.pushNamed(createGroupRoute),
             icon: const Icon(Icons.add),
           )
@@ -171,9 +176,9 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
                                         ),
                                         PopupMenuItem(
                                           value: () {
-                                            Clipboard.setData(ClipboardData(text: group.code));
+                                            Clipboard.setData(ClipboardData(text: "Use this code to join group ${group.name}. Code: ${group.code}"));
                                           },
-                                          child: const Text('Copy group code'),
+                                          child: const Text('Share group code'),
                                         ),
                                       ];
                                     },
