@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_public_notifier_properties
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:anu3/group/api/group_repository.dart';
 import 'package:anu3/group/group.dart';
@@ -68,7 +69,6 @@ class GroupListNotifier extends _$GroupListNotifier {
     return Future.value();
   }
 
-
   Future<void> addGroup({
     required GroupModel group,
   }) async {
@@ -96,6 +96,9 @@ class GroupListNotifier extends _$GroupListNotifier {
     state = await AsyncValue.guard(() async {
       bool deleted = await ref.read(groupRepositoryProvider).deleteGroup(groupId: id);
       if (deleted) {
+        if (state.value!.length < perPage) {
+          fetchFresh();
+        }
         return state.value!.where((element) => element.id != id).toList();
       } else {
         return state.value!;

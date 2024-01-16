@@ -47,6 +47,8 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
     }
   }
 
+  void _handleDelete(BuildContext context, String groupId) {}
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -171,7 +173,31 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
                                           child: const Text('Edit group'),
                                         ),
                                         PopupMenuItem(
-                                          value: () => notifier.deleteGroup(id: group.id),
+                                          value: () => showDialog(
+                                            builder: (BuildContext context) => AlertDialog(
+                                              title: const Text('Are you sure ?'),
+                                              // content: const Text('Are you sure ?'),
+                                              actions: [
+                                                TextButton(
+                                                  child: const Text(
+                                                    'Yes',
+                                                  ),
+                                                  onPressed: () {
+                                                    notifier.deleteGroup(id: group.id);
+                                                    context.pop();
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: const Text(
+                                                    'No',
+                                                    style: TextStyle(color: Colors.red),
+                                                  ),
+                                                  onPressed: () => context.pop(),
+                                                )
+                                              ],
+                                            ),
+                                            context: context,
+                                          ),
                                           child: const Text('Delete group'),
                                         ),
                                         PopupMenuItem(
