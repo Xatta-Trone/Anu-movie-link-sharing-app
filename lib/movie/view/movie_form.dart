@@ -246,6 +246,9 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                const SizedBox(
+                  height: 8.0,
+                ),
                 TextFormField(
                   controller: _movieName,
                   autofocus: true,

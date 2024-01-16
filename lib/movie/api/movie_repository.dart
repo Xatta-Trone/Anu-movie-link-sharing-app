@@ -15,18 +15,19 @@ class MovieRepository {
   Future<List<MovieModel>> getMovies({
     int page = 1,
     required String groupId,
+    String query = '',
+    int perPage = 10,
   }) async {
     final userId = _client.auth.currentSession?.user.id;
-
-    const perPage = 10;
     final from = (page - 1) * perPage;
     final to = page * perPage;
 
     if (userId == null) {
       throw 'Not logged in';
     }
-
-    final response = await _client.from('movies').select('*').eq('group_id', groupId).range(from, to).order('id', ascending: false);
+    query = '%$query%';
+    final response =
+        await _client.from('movies').select('*').ilike('title', query).eq('group_id', groupId).range(from, to).order('id', ascending: false);
     if (kDebugMode) {
       print(response.toString());
     }

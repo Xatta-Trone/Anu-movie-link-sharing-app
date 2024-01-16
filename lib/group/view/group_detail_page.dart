@@ -42,7 +42,7 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${group.name} - ${group.code}',
+          group.name,
         ),
         actions: [
           IconButton(

@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_public_notifier_properties
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:anu3/group/api/group_repository.dart';
 import 'package:anu3/group/group.dart';
