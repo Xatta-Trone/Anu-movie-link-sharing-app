@@ -170,20 +170,22 @@ class _TestFormState extends ConsumerState<TestForm> {
             const SizedBox(height: 16),
             // TextFormField(),
             TypeAheadField<TMDBSingleResult>(
+              controller: _textEditingController,
               suggestionsCallback: (search) async {
                 if (kDebugMode) {
                   print(search);
                 }
-                if (search.isEmpty) {
+                if (search.isEmpty || selected != null) {
                   return [];
                 } else {
-                  _debouncer.run(() async {
-                    setState(() {
-                      _listMovies.clear();
-                      selected = null;
-                    });
-                    await getValues(query: search);
+                  // _debouncer.run(() async {
+
+                  // });
+                  setState(() {
+                    _listMovies.clear();
+                    selected = null;
                   });
+                  await getValues(query: search);
                   return _listMovies;
                 }
               },
@@ -192,10 +194,15 @@ class _TestFormState extends ConsumerState<TestForm> {
                     controller: controller,
                     focusNode: focusNode,
                     autofocus: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'City',
-                    ));
+                  decoration: InputDecoration(
+                    hintText: 'Movie name (year)',
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                );
               },
               itemBuilder: (context, movie) {
                 return ListTile(
@@ -206,6 +213,8 @@ class _TestFormState extends ConsumerState<TestForm> {
                 setState(() {
                   selected = movie;
                 });
+
+                _textEditingController.text = movie.mediaType == 'tv' ? movie.name! : movie.title!;
 
                 if (kDebugMode) {
                   print(selected);
