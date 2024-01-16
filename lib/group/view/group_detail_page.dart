@@ -48,7 +48,7 @@ class _GroupDetailPageState extends ConsumerState<GroupDetailPage> {
           IconButton(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             onPressed: () => context.pushNamed(
-              movieFormRoute,
+              testFormRoute,
               queryParameters: {
                 'group_id': "${group.id}",
               },

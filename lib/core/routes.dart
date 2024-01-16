@@ -5,6 +5,7 @@ import 'package:anu3/group/group.dart';
 import 'package:anu3/group/view/create_group_page.dart';
 import 'package:anu3/group/view/group_detail_page.dart';
 import 'package:anu3/movie/view/movie_form.dart';
+import 'package:anu3/movie/view/test_form.dart';
 import 'package:anu3/profile/view/profile_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
@@ -75,6 +76,13 @@ final router = GoRouter(
           groupId: groupId,
           movieId: movieId,
         );
+      },
+    ),
+    GoRoute(
+      name: testFormRoute,
+      path: '/test-form',
+      builder: (context, state) {
+        return const TestForm();
       },
     ),
   ],

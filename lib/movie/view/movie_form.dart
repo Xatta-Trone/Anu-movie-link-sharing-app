@@ -1,13 +1,18 @@
+import 'package:anu3/core/debouncer.dart';
 import 'package:anu3/group/group.dart';
 import 'package:anu3/group/providers/group_list_notifier_provider.dart';
 import 'package:anu3/movie/api/movie_repository.dart';
 import 'package:anu3/movie/model/movie_link_model.dart';
 import 'package:anu3/movie/model/movie_model.dart';
+import 'package:anu3/movie/model/tmdb_result_model.dart';
 import 'package:anu3/movie/provider/movie_list_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 
 // ignore: must_be_immutable
 class MovieFormPage extends ConsumerStatefulWidget {
@@ -50,6 +55,8 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     } else {
       _movieLinks.add(const MovieLinkModel(link: ''));
     }
+
+    _movieName.addListener(_onQueryChanged);
   }
 
   Future<void> _addLinks(int movieId) async {
@@ -222,6 +229,58 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     });
   }
 
+  List<TMDBSingleResult> _listMovies = List<TMDBSingleResult>.empty(growable: true);
+
+  Future<List<TMDBSingleResult>> _searchMovies({query = ""}) async {
+    setState(() {
+      _listMovies.clear();
+    });
+    var dio = Dio();
+    var token = dotenv.env['TMDB_KEY'] ?? '';
+    dio.options.headers["Authorization"] = "Bearer $token";
+    if (kDebugMode) {
+      print(token);
+    }
+    var results = List<TMDBSingleResult>.empty(growable: true);
+
+    dio.get("https://api.themoviedb.org/3/search/multi?query=${_movieName.text}&include_adult=false&language=en-US&page=1").then((response) {
+      if (response.statusCode == 200) {
+        if (kDebugMode) {
+          print(response.data);
+        }
+        TmdbResult result = TmdbResult.fromJson(response.data);
+        if (kDebugMode) {
+          print(result.totalPages);
+        }
+
+        setState(() {
+          _listMovies.addAll(result.results);
+        });
+      }
+      return results;
+    }).catchError((onError) {
+      if (kDebugMode) {
+        print(onError);
+      }
+      return results;
+    });
+
+    return results;
+  }
+
+  final _debouncer = Debouncer(milliseconds: 500);
+
+  void _onQueryChanged() {
+    _debouncer.run(() {
+      if (kDebugMode) {
+        print(_movieName.text);
+      }
+      if (_movieName.text.isNotEmpty) {
+        _searchMovies(query: _movieName.text);
+      }
+    });
+  }
+
   @override
   void dispose() {
     _movieName.dispose();
@@ -230,6 +289,8 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     _movieRating.dispose();
     super.dispose();
   }
+
+  static String _displayStringForOption(TMDBSingleResult option) => option.name ?? 'no name';
 
   @override
   Widget build(BuildContext context) {
@@ -246,27 +307,69 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                // Autocomplete<String>(
+                //     // displayStringForOption: _displayStringForOption,
+                //     fieldViewBuilder: (BuildContext context, TextEditingController controller, FocusNode focusNode, VoidCallback onFieldSubmitted) {
+                //   return TextFormField(
+                //     autofocus: true,
+                //     // controller: _movieName,
+                //     // decoration: InputDecoration(
+                //     //   hintText: 'Movie name (year)',
+                //     //   filled: true,
+                //     //   border: OutlineInputBorder(
+                //     //     borderRadius: BorderRadius.circular(5),
+                //     //     borderSide: BorderSide.none,
+                //     //   ),
+                //     // ),
+                //     // controller: _movieName,
+                //     focusNode: focusNode,
+                //   );
+                // }, onSelected: (option) {
+                //   if (kDebugMode) {
+                //     print(option);
+                //   }
+                // }, optionsViewBuilder: (context, onSelected, options) {
+                //   return ListView.builder(
+                //       itemCount: options.length,
+                //       itemBuilder: (context, index) {
+                //         return ListTile(
+                //           title: Text(options.elementAt(index)),
+                //         );
+                //       });
+                // }, optionsBuilder: (TextEditingValue value) async {
+                //   if (kDebugMode) {
+                //     print(value.text);
+                //   }
+                //   // await _searchMovies(query: value.text);
+
+                //   if (kDebugMode) {
+                //     print(_listMovies);
+                //   }
+
+                //   return ['asdf', 'bsadfsadf'];
+                // }),
+                
                 const SizedBox(
                   height: 8.0,
                 ),
-                TextFormField(
-                  controller: _movieName,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Movie name (year)',
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a movie name with year';
-                    }
-                    return null;
-                  },
-                ),
+                // TextFormField(
+                //   controller: _movieName,
+                //   autofocus: true,
+                //   decoration: InputDecoration(
+                //     hintText: 'Movie name (year)',
+                //     filled: true,
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(5),
+                //       borderSide: BorderSide.none,
+                //     ),
+                //   ),
+                //   validator: (value) {
+                //     if (value == null || value.isEmpty) {
+                //       return 'Please enter a movie name with year';
+                //     }
+                //     return null;
+                //   },
+                // ),
                 const SizedBox(
                   height: 15.0,
                 ),
