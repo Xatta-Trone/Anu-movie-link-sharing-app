@@ -1,18 +1,16 @@
-import 'package:anu3/core/debouncer.dart';
 import 'package:anu3/group/group.dart';
 import 'package:anu3/group/providers/group_list_notifier_provider.dart';
 import 'package:anu3/movie/api/movie_repository.dart';
+import 'package:anu3/movie/api/tmdb_repository.dart';
 import 'package:anu3/movie/model/movie_link_model.dart';
 import 'package:anu3/movie/model/movie_model.dart';
 import 'package:anu3/movie/model/tmdb_result_model.dart';
 import 'package:anu3/movie/provider/movie_list_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dio/dio.dart';
 
 // ignore: must_be_immutable
 class MovieFormPage extends ConsumerStatefulWidget {
@@ -55,8 +53,6 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     } else {
       _movieLinks.add(const MovieLinkModel(link: ''));
     }
-
-    _movieName.addListener(_onQueryChanged);
   }
 
   Future<void> _addLinks(int movieId) async {
@@ -83,6 +79,9 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
   bool _isSubmitting = false;
 
   handleSubmit(BuildContext context) {
+    setState(() {
+      _isSubmitting = true;
+    });
     if (widget.movieId != null) {
       return handleUpdate(context);
     } else {
@@ -91,10 +90,6 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
   }
 
   handleCreate(BuildContext context) {
-    setState(() {
-      _isSubmitting = true;
-    });
-
     // create movie
     ScaffoldMessenger.of(context).clearSnackBars();
 
@@ -111,11 +106,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           )
           .then(
         (value) {
-          if (kDebugMode) {
-            print('value');
-            print(value);
-            ref.read(movieListNotifierProvider.notifier).addMovie(movie: value!);
-          }
+          ref.read(movieListNotifierProvider.notifier).addMovie(movie: value!);
 
           if (mounted) {
             context.pop();
@@ -151,9 +142,6 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
   }
 
   handleUpdate(BuildContext context) {
-    setState(() {
-      _isSubmitting = true;
-    });
     // create movie
     ScaffoldMessenger.of(context).clearSnackBars();
 
@@ -171,9 +159,9 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           .then(
         (value) {
           if (kDebugMode) {
-            ref.read(movieListNotifierProvider.notifier).updateMovie(movie: value!);
             print(value);
           }
+          ref.read(movieListNotifierProvider.notifier).updateMovie(movie: value!);
 
           if (mounted) {
             context.pop();
@@ -229,55 +217,49 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     });
   }
 
-  List<TMDBSingleResult> _listMovies = List<TMDBSingleResult>.empty(growable: true);
+  final List<TMDBSingleResult> _listMovies = List<TMDBSingleResult>.empty(growable: true);
+  TMDBSingleResult? selected;
 
-  Future<List<TMDBSingleResult>> _searchMovies({query = ""}) async {
-    setState(() {
-      _listMovies.clear();
-    });
-    var dio = Dio();
-    var token = dotenv.env['TMDB_KEY'] ?? '';
-    dio.options.headers["Authorization"] = "Bearer $token";
+  searchQuery({String query = ""}) async {
+    var values = await TMDBRepository().searchKeywords(query: query.trim());
+
     if (kDebugMode) {
-      print(token);
+      print('values');
+      print(values!.length);
     }
-    var results = List<TMDBSingleResult>.empty(growable: true);
 
-    dio.get("https://api.themoviedb.org/3/search/multi?query=${_movieName.text}&include_adult=false&language=en-US&page=1").then((response) {
-      if (response.statusCode == 200) {
-        if (kDebugMode) {
-          print(response.data);
-        }
-        TmdbResult result = TmdbResult.fromJson(response.data);
-        if (kDebugMode) {
-          print(result.totalPages);
-        }
-
-        setState(() {
-          _listMovies.addAll(result.results);
-        });
-      }
-      return results;
-    }).catchError((onError) {
-      if (kDebugMode) {
-        print(onError);
-      }
-      return results;
+    setState(() {
+      selected = null;
+      _listMovies.addAll(values as Iterable<TMDBSingleResult>);
     });
 
-    return results;
+    return _listMovies;
   }
 
-  final _debouncer = Debouncer(milliseconds: 500);
+  String _posterPath = '';
+  setSelected(TMDBSingleResult value) async {
+    if (kDebugMode) {
+      print('selected');
+      print(value);
+    }
 
-  void _onQueryChanged() {
-    _debouncer.run(() {
-      if (kDebugMode) {
-        print(_movieName.text);
-      }
-      if (_movieName.text.isNotEmpty) {
-        _searchMovies(query: _movieName.text);
-      }
+    String title = value.mediaType == 'tv' ? value.name! : value.title!;
+    title += " ";
+    title += value.mediaType == 'tv' ? "(${value.firstAirDate!.substring(0, 4)})" : "(${value.releaseDate!.substring(0, 4)})";
+
+    setState(() {
+      selected = value;
+      _movieName.text = title;
+      _moviePoster.text = "https://image.tmdb.org/t/p/w500/${value.backdropPath!}";
+      _posterPath = "https://image.tmdb.org/t/p/w500/${value.posterPath!}";
+      _movieRating.text = value.voteAverage!.toStringAsFixed(1).toString();
+    });
+
+    // get the categories
+    var categories = await TMDBRepository().getGenres(value);
+
+    setState(() {
+      _movieCategories.text = categories.join(', ');
     });
   }
 
@@ -289,8 +271,6 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     _movieRating.dispose();
     super.dispose();
   }
-
-  static String _displayStringForOption(TMDBSingleResult option) => option.name ?? 'no name';
 
   @override
   Widget build(BuildContext context) {
@@ -307,69 +287,59 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Autocomplete<String>(
-                //     // displayStringForOption: _displayStringForOption,
-                //     fieldViewBuilder: (BuildContext context, TextEditingController controller, FocusNode focusNode, VoidCallback onFieldSubmitted) {
-                //   return TextFormField(
-                //     autofocus: true,
-                //     // controller: _movieName,
-                //     // decoration: InputDecoration(
-                //     //   hintText: 'Movie name (year)',
-                //     //   filled: true,
-                //     //   border: OutlineInputBorder(
-                //     //     borderRadius: BorderRadius.circular(5),
-                //     //     borderSide: BorderSide.none,
-                //     //   ),
-                //     // ),
-                //     // controller: _movieName,
-                //     focusNode: focusNode,
-                //   );
-                // }, onSelected: (option) {
-                //   if (kDebugMode) {
-                //     print(option);
-                //   }
-                // }, optionsViewBuilder: (context, onSelected, options) {
-                //   return ListView.builder(
-                //       itemCount: options.length,
-                //       itemBuilder: (context, index) {
-                //         return ListTile(
-                //           title: Text(options.elementAt(index)),
-                //         );
-                //       });
-                // }, optionsBuilder: (TextEditingValue value) async {
-                //   if (kDebugMode) {
-                //     print(value.text);
-                //   }
-                //   // await _searchMovies(query: value.text);
-
-                //   if (kDebugMode) {
-                //     print(_listMovies);
-                //   }
-
-                //   return ['asdf', 'bsadfsadf'];
-                // }),
-                
                 const SizedBox(
                   height: 8.0,
                 ),
-                // TextFormField(
-                //   controller: _movieName,
-                //   autofocus: true,
-                //   decoration: InputDecoration(
-                //     hintText: 'Movie name (year)',
-                //     filled: true,
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(5),
-                //       borderSide: BorderSide.none,
-                //     ),
-                //   ),
-                //   validator: (value) {
-                //     if (value == null || value.isEmpty) {
-                //       return 'Please enter a movie name with year';
-                //     }
-                //     return null;
-                //   },
-                // ),
+                TypeAheadField<TMDBSingleResult>(
+                  controller: _movieName,
+                  suggestionsCallback: (search) async {
+                    if (search.isEmpty) {
+                      return [];
+                    } else {
+                      setState(() {
+                        _listMovies.clear();
+                      });
+                      await searchQuery(query: search);
+                      return _listMovies;
+                    }
+                  },
+                  builder: (context, controller, focusNode) {
+                    return TextFormField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Movie name (year)',
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: IconButton(
+                          onPressed: () => _movieName.clear(),
+                          icon: const Icon(Icons.cancel_rounded),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a movie name with year';
+                        }
+                        return null;
+                      },
+                    );
+                  },
+                  itemBuilder: (context, movie) {
+                    return ListTile(
+                      title: Text(movie.name ?? movie.title!),
+                      subtitle: Text(
+                        "${movie.mediaType!} - ${movie.mediaType == 'tv' ? movie.firstAirDate : movie.releaseDate}",
+                      ),
+                    );
+                  },
+                  onSelected: (result) {
+                    setSelected(result);
+                  },
+                ),
                 const SizedBox(
                   height: 15.0,
                 ),
@@ -404,6 +374,24 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                     ),
                   ),
                 ),
+                if (_moviePoster.text.isNotEmpty || _posterPath != '') ...[
+                  const SizedBox(
+                    height: 15.0,
+                  ),
+                  Row(
+                    mainAxisAlignment: _posterPath != '' ? MainAxisAlignment.spaceEvenly : MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 150.0,
+                        child: _posterPath != '' ? Image.network(_posterPath) : null,
+                      ),
+                      SizedBox(
+                        height: 150.0,
+                        child: Image.network(_moviePoster.text),
+                      ),
+                    ],
+                  )
+                ],
                 const SizedBox(
                   height: 15.0,
                 ),
@@ -442,7 +430,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                 const SizedBox(
                   height: 15.0,
                 ),
-                const Text('Movie links'),
+                const Text('Links'),
                 const SizedBox(
                   height: 15.0,
                 ),
@@ -505,9 +493,6 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                     ]);
                   },
                 ),
-                const SizedBox(
-                  height: 15.0,
-                ),
                 TextButton(
                   onPressed: () {
                     setState(() {
@@ -516,8 +501,9 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                   },
                   child: const Text('Add new link'),
                 ),
+                Text(_isSubmitting.toString()),
                 const SizedBox(
-                  height: 15.0,
+                  height: 10.0,
                 ),
                 SizedBox(
                   width: double.infinity,
@@ -532,18 +518,19 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                             // Validate returns true if the form is valid, or false otherwise.
                             if (_formKey.currentState!.validate()) {
                               _formKey.currentState!.save();
-                              if (kDebugMode) {
-                                print('_movieLinks');
-                                print(_movieLinks);
-                              }
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Processing Data')),
                               );
-
                               handleSubmit(context);
                             }
                           },
-                    child: Text(widget.movieId == null ? 'Create' : 'Update'),
+                    child: Text(widget.movieId == null
+                        ? _isSubmitting
+                            ? 'Creating...'
+                            : 'Create'
+                        : _isSubmitting
+                            ? 'Updating...'
+                            : 'Update'),
                   ),
                 ),
               ],

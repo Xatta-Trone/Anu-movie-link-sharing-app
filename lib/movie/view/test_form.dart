@@ -63,23 +63,8 @@ class _TestFormState extends ConsumerState<TestForm> {
     }
 
     setState(() {
-      // _listMovies.clear();
       selected = null;
     });
-
-    // setState(() {
-    //   _listMovies.clear();
-    // });
-    // Future.delayed(const Duration(seconds: 0), () {
-    //   setState(() {
-    //     values.addAll([
-    //       TestModel(name: 'aaaa', age: 22),
-    //       TestModel(name: 'bbb', age: 23),
-    //       TestModel(name: 'ccc', age: 24),
-    //       TestModel(name: 'ddd', age: 25),
-    //     ]);
-    //   });
-    // });
 
     var dio = Dio();
     var token = dotenv.env['TMDB_KEY'] ?? '';

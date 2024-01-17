@@ -1,5 +1,6 @@
 import 'package:anu3/movie/model/movie_link_model.dart';
 import 'package:anu3/movie/model/movie_model.dart';
+import 'package:anu3/movie/provider/movie_list_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

@@ -6,10 +6,12 @@
         "Debouncer",
         "dotenv",
         "ilike",
+        "imdb",
         "riverpod",
         "sublist",
         "Supabase",
         "Tmdb",
+        "typeahead",
         "unfocus",
         "upsert"
     ]

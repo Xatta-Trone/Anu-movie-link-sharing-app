@@ -136,7 +136,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
                                 colors: [
-                                  Colors.black.withOpacity(0.5),
+                                  Colors.black.withOpacity(0.4),
                                   Colors.black.withOpacity(.3),
                                 ],
                               ),
@@ -211,11 +211,11 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                                                     },
                                                   )
                                                 },
-                                                child: const Text('Edit'),
+                                                child: const Text('Edit media'),
                                               ),
                                               PopupMenuItem(
                                                 value: () => ref.read(movieListNotifierProvider.notifier).deleteMovie(id: movie.id),
-                                                child: const Text('Delete'),
+                                                child: const Text('Delete media'),
                                               ),
                                             ];
                                           },
@@ -248,10 +248,19 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                               child: CircularProgressIndicator(),
                             ),
                           )
-                        : const Center(
+                        : Center(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10.0),
-                              child: Text('End of list'),
+                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Column(
+                                children: [
+                                  const Text('End of list'),
+                                  TextButton(
+                                    style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
+                                    onPressed: () => notifier.fetchFresh(groupId: widget.groupId),
+                                    child: const Text("Refresh data"),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                   ],
