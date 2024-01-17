@@ -1,6 +1,6 @@
 import 'package:anu3/movie/model/movie_link_model.dart';
 import 'package:anu3/movie/model/movie_model.dart';
-import 'package:anu3/movie/provider/movie_list_provider.dart';
+import 'package:anu3/movie/model/user_movie_stats_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -27,13 +27,46 @@ class MovieRepository {
       throw 'Not logged in';
     }
     query = '%$query%';
-    final response =
-        await _client.from('movies').select('*').ilike('title', query).eq('group_id', groupId).range(from, to).order('id', ascending: false);
+    final response = await _client
+        .from('movies')
+        .select("*,movie_user_stats!left(*)")
+        .ilike('title', query)
+        .eq('group_id', groupId)
+        .range(from, to)
+        .order('id', ascending: false);
     if (kDebugMode) {
       print(response.toString());
     }
 
     return response.map<MovieModel>((json) => MovieModel.fromJson(json)).toList();
+  }
+
+  Future<List<UserMovieStatsModel>> getWatchedMovies({required List<int> movieIds}) async {
+    final userId = _client.auth.currentSession?.user.id;
+    final response = await _client.from('movie_user_stats').select('*').eq('user_id', userId!).inFilter('movie_id', movieIds);
+    return response.map<UserMovieStatsModel>((json) => UserMovieStatsModel.fromJson(json)).toList();
+  }
+
+  Future<UserMovieStatsModel?> addWatchedMovie({required int movieId}) async {
+    late UserMovieStatsModel model;
+    final userId = _client.auth.currentSession?.user.id;
+    final response = await _client.from('movie_user_stats').insert({'movie_id': movieId, 'user_id': userId!}).select();
+    if (response.isNotEmpty) {
+      model = UserMovieStatsModel.fromJson(response[0]);
+    }
+    return model;
+  }
+
+  Future<bool> deleteWatchedMovies({required UserMovieStatsModel model}) async {
+    try {
+      await _client.from('movie_user_stats').delete().match({'id': model.id});
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return false;
+    }
   }
 
   Future<List<MovieLinkModel>> getLinks({required int movieId}) async {

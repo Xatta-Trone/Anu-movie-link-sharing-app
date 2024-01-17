@@ -5,6 +5,7 @@ import 'package:anu3/core/const.dart';
 import 'package:anu3/core/debouncer.dart';
 import 'package:anu3/movie/model/movie_model.dart';
 import 'package:anu3/movie/provider/movie_list_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -121,7 +122,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                             image: DecorationImage(
                               alignment: movie.poster != null ? Alignment.topCenter : Alignment.center,
                               fit: BoxFit.cover,
-                              image: NetworkImage(
+                              image: CachedNetworkImageProvider(
                                 movie.poster != null
                                     ? 'https://image.tmdb.org/t/p/w500/${movie.poster}'
                                     : 'https://placehold.co/400x400/34495e/FFF.png?text=No%20Image',
@@ -223,13 +224,37 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                                         )
                                       ],
                                       GestureDetector(
-                                        onTap: () {
+                                        onTap: () async {
                                           if (kDebugMode) {
-                                            print('clicked');
+                                            print('bookmark clicked ');
                                           }
+                                          await ref.read(movieListNotifierProvider.notifier).toggleWatched(movie).then((b) {
+                                            ScaffoldMessenger.of(context).clearSnackBars();
+                                            if (kDebugMode) {
+                                              print('status');
+                                              print(b);
+                                            }
+                                            if (b == 1) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Removed from watchlist...")),
+                                              );
+                                            } else if (b == 2) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Added to watchlist...")),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Error Updating watch-list...")),
+                                              );
+                                            }
+                                          }).catchError((e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text("Error Updating watch-list...")),
+                                            );
+                                          });
                                         },
-                                        child: const Icon(
-                                          Icons.bookmark_add_outlined,
+                                        child: Icon(
+                                          movie.watchedList!.isNotEmpty ? Icons.bookmark_remove_sharp : Icons.bookmark_add_outlined,
                                           color: Colors.white,
                                         ),
                                       ),
@@ -275,7 +300,6 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
             ),
           ),
         ],
-        
       ),
     );
   }
@@ -325,11 +349,7 @@ class CategoryChip extends StatelessWidget {
 class NoMovieWidget extends StatelessWidget {
   String groupId;
   final TextEditingController queryController;
-  NoMovieWidget({
-    super.key,
-    required this.groupId,
-    required this.queryController
-  });
+  NoMovieWidget({super.key, required this.groupId, required this.queryController});
 
   @override
   Widget build(BuildContext context) {

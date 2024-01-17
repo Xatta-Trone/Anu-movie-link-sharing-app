@@ -1,3 +1,4 @@
+import 'package:anu3/movie/model/user_movie_stats_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'movie_model.freezed.dart';
@@ -11,6 +12,7 @@ class MovieModel with _$MovieModel {
     required String? poster,
     required double rating,
     required List<String> categories,
+    @JsonKey(name: 'movie_user_stats') List<UserMovieStatsModel>? watchedList,
     @JsonKey(name: 'user_id') required String userId,
     @JsonKey(name: 'user_name') required String userName,
     @JsonKey(name: 'group_id') required int groupId,

@@ -13,6 +13,7 @@
         "Tmdb",
         "typeahead",
         "unfocus",
-        "upsert"
+        "upsert",
+        "watchlist"
     ]
 }

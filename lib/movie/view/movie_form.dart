@@ -106,7 +106,11 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           )
           .then(
         (value) {
-          ref.read(movieListNotifierProvider.notifier).addMovie(movie: value!);
+          if (kDebugMode) {
+            print(value);
+          }
+          MovieModel model = value!.copyWith(watchedList: []);
+          ref.read(movieListNotifierProvider.notifier).addMovie(movie: model);
 
           if (mounted) {
             context.pop();
