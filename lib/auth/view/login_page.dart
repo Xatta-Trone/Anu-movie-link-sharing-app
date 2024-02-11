@@ -21,7 +21,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authUserProvider).asData?.value;
+    // final user = ref.watch(authUserProvider).asData?.value;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +32,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(user?.id ?? 'no user'),
           Center(
             child: SignInButton(
               Buttons.google,
