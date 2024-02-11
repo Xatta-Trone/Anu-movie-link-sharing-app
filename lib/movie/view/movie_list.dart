@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ignore: must_be_immutable
 class MovieListPage extends ConsumerStatefulWidget {
@@ -77,6 +78,12 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
         : currentFilter[1] == true
             ? 'PENDING'
             : 'WATCHED';
+  }
+
+  Future<void> _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception('Could not launch $url');
+    }
   }
 
   @override
@@ -153,10 +160,40 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                   children: [
                     for (final movie in movies)
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
+                          final movieLinks = await notifier.getMovieLinks(movie);
+
                           if (kDebugMode) {
                             print(movie.id);
+                            print(movieLinks);
                           }
+
+                          if (mounted) {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: movieLinks.length,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      return ListTile(
+                                        title: Text(movieLinks[index].link,
+                                            style: const TextStyle(
+                                              decoration: TextDecoration.underline,
+                                            )),
+                                        onTap: () => _launchUrl(movieLinks[index].link),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          }
+
+                          
                         },
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),

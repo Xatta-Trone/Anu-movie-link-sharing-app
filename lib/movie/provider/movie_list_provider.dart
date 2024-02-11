@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:anu3/movie/api/movie_repository.dart';
+import 'package:anu3/movie/model/movie_link_model.dart';
 import 'package:anu3/movie/model/movie_model.dart';
 import 'package:anu3/movie/model/user_movie_stats_model.dart';
 import 'package:flutter/foundation.dart';
@@ -203,4 +204,11 @@ class MovieListNotifier extends _$MovieListNotifier {
   MovieModel getMovieById(int id) {
     return state.value!.firstWhere((element) => element.id == id);
   }
+
+
+  Future<List<MovieLinkModel>> getMovieLinks(MovieModel movie) async {
+    return await ref.read(movieRepositoryProvider).getLinks(movieId: movie.id);
+  }
+
+
 }
