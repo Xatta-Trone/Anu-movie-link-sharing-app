@@ -1,9 +1,16 @@
 import 'package:anu3/auth/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyProfile extends ConsumerWidget {
   const MyProfile({super.key});
+
+  Future<void> _launchUrl(String url) async {
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,13 +37,29 @@ class MyProfile extends ConsumerWidget {
                 child: Image.network(user?.userMetadata?['avatar_url'] ?? "https://placehold.jp/150x150.png"),
               ),
             ),
+            const SizedBox(
+              height: 5.0,
+            ),
             Text(user?.userMetadata?['name'] ?? ''),
+            const SizedBox(
+              height: 5.0,
+            ),
             Text(user?.email ?? ''),
             // Text(user?.id ?? ''),
-            ElevatedButton(
+            const SizedBox(
+              height: 5.0,
+            ),
+            FilledButton(
               onPressed: logout,
               child: const Text('Logout'),
-            )
+            ),
+
+            const SizedBox(
+              height: 15.0,
+            ),
+            TextButton(
+                onPressed: () => _launchUrl('https://www.freeprivacypolicy.com/live/091f38cc-4405-4e9c-bc8f-f3b145bde22f'),
+                child: const Text('Privacy Policy')),
           ],
         ),
       ),

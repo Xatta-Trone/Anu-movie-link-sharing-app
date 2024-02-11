@@ -88,10 +88,10 @@ class _GroupHomePageState extends ConsumerState<GroupHomePage> {
                 controller: _queryController,
                 decoration: InputDecoration(
                   hintText: 'Search group...',
-                  suffixIcon: IconButton(
+                  suffixIcon: _queryController.text.isNotEmpty ? IconButton(
                     onPressed: () => _queryController.clear(),
                     icon: const Icon(Icons.cancel_rounded),
-                  ),
+                  ) : null,
                 ),
               ),
             ),
