@@ -32,7 +32,7 @@ class MyProfile extends ConsumerWidget {
             ),
             Text(user?.userMetadata?['name'] ?? ''),
             Text(user?.email ?? ''),
-            Text(user?.id ?? ''),
+            // Text(user?.id ?? ''),
             ElevatedButton(
               onPressed: logout,
               child: const Text('Logout'),

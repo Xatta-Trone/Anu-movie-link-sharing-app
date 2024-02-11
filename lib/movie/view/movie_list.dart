@@ -29,9 +29,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
   void initState() {
     Future.delayed(
       Duration.zero,
-      () => ref.read(movieListNotifierProvider.notifier).fetchFresh(
-            groupId: widget.groupId,
-          ),
+      () => ref.read(movieListNotifierProvider.notifier).fetchFresh(groupId: widget.groupId, filter: getFilter()),
     );
     _scrollController.addListener(_loadMore);
     _queryController.addListener(_onQueryChanged);
@@ -53,6 +51,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
       ref.read(movieListNotifierProvider.notifier).fetchFresh(
             groupId: widget.groupId,
             query: _queryController.text,
+            filter: getFilter(),
           );
     });
   }
@@ -65,8 +64,19 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
       ref.read(movieListNotifierProvider.notifier).fetchNextPage(
             groupId: widget.groupId,
             query: _queryController.text,
+            filter: getFilter(),
           );
     }
+  }
+
+  List<bool> currentFilter = [true, false, false];
+
+  String getFilter() {
+    return currentFilter[0] == true
+        ? 'ALL'
+        : currentFilter[1] == true
+            ? 'PENDING'
+            : 'WATCHED';
   }
 
   @override
@@ -76,7 +86,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
     final notifier = ref.read(movieListNotifierProvider.notifier);
 
     return RefreshIndicator(
-      onRefresh: () => notifier.fetchFresh(groupId: widget.groupId),
+      onRefresh: () => notifier.fetchFresh(groupId: widget.groupId, filter: getFilter()),
       child: Column(
         children: [
           Padding(
@@ -85,12 +95,47 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
               controller: _queryController,
               decoration: InputDecoration(
                 hintText: 'Search movies...',
-                suffixIcon: IconButton(
-                  onPressed: () => _queryController.clear(),
-                  icon: const Icon(Icons.cancel_rounded),
-                ),
+                suffixIcon: _queryController.text.isNotEmpty
+                    ? IconButton(
+                        onPressed: () => _queryController.clear(),
+                        icon: const Icon(Icons.cancel_rounded),
+                      )
+                    : null,
               ),
             ),
+          ),
+          ToggleButtons(
+            constraints: BoxConstraints(
+              minWidth: (MediaQuery.of(context).size.width - 20) / currentFilter.length,
+            ),
+            isSelected: currentFilter,
+            onPressed: (int index) {
+              setState(() {
+                // The button that is tapped is set to true, and the others to false.
+                for (int i = 0; i < currentFilter.length; i++) {
+                  currentFilter[i] = i == index;
+                }
+                notifier.fetchFresh(groupId: widget.groupId, filter: getFilter());
+                if (kDebugMode) {
+                  print(getFilter());
+                }
+              });
+            },
+            borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+            children: const [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                child: Text('All'),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                child: Text('Pending'),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+                child: Text('Watched'),
+              ),
+            ],
           ),
           movies.when(
             data: (List<MovieModel> movies) {
@@ -254,7 +299,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                                           });
                                         },
                                         child: Icon(
-                                          movie.watchedList!.isNotEmpty ? Icons.bookmark_remove_sharp : Icons.bookmark_add_outlined,
+                                          movie.watchedList != null ? Icons.bookmark_remove_sharp : Icons.bookmark_add_outlined,
                                           color: Colors.white,
                                         ),
                                       ),
@@ -281,7 +326,7 @@ class _MovieListPageState extends ConsumerState<MovieListPage> {
                                   const Text('End of list'),
                                   TextButton(
                                     style: TextButton.styleFrom(shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
-                                    onPressed: () => notifier.fetchFresh(groupId: widget.groupId),
+                                    onPressed: () => _queryController.clear(),
                                     child: const Text("Refresh data"),
                                   ),
                                 ],

@@ -109,7 +109,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
           if (kDebugMode) {
             print(value);
           }
-          MovieModel model = value!.copyWith(watchedList: []);
+          MovieModel model = value!.copyWith(watchedList: null);
           ref.read(movieListNotifierProvider.notifier).addMovie(movie: model);
 
           if (mounted) {
@@ -281,7 +281,7 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
     // ignore: prefer_const_constructors
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add a movie'),
+        title: Text(widget.movieId == null ? 'Add a movie' : 'Update movie'),
         elevation: 10.0,
       ),
       body: Padding(
@@ -505,7 +505,6 @@ class _MovieFormPageState extends ConsumerState<MovieFormPage> {
                   },
                   child: const Text('Add new link'),
                 ),
-                Text(_isSubmitting.toString()),
                 const SizedBox(
                   height: 10.0,
                 ),

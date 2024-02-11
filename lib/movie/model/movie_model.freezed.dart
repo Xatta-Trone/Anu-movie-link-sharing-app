@@ -26,8 +26,7 @@ mixin _$MovieModel {
   double get rating => throw _privateConstructorUsedError;
   List<String> get categories => throw _privateConstructorUsedError;
   @JsonKey(name: 'movie_user_stats')
-  List<UserMovieStatsModel>? get watchedList =>
-      throw _privateConstructorUsedError;
+  UserMovieStatsModel? get watchedList => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_id')
   String get userId => throw _privateConstructorUsedError;
   @JsonKey(name: 'user_name')
@@ -55,11 +54,13 @@ abstract class $MovieModelCopyWith<$Res> {
       String? poster,
       double rating,
       List<String> categories,
-      @JsonKey(name: 'movie_user_stats') List<UserMovieStatsModel>? watchedList,
+      @JsonKey(name: 'movie_user_stats') UserMovieStatsModel? watchedList,
       @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'group_id') int groupId,
       @JsonKey(name: 'created_at') DateTime createdAt});
+
+  $UserMovieStatsModelCopyWith<$Res>? get watchedList;
 }
 
 /// @nodoc
@@ -110,7 +111,7 @@ class _$MovieModelCopyWithImpl<$Res, $Val extends MovieModel>
       watchedList: freezed == watchedList
           ? _value.watchedList
           : watchedList // ignore: cast_nullable_to_non_nullable
-              as List<UserMovieStatsModel>?,
+              as UserMovieStatsModel?,
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -129,6 +130,18 @@ class _$MovieModelCopyWithImpl<$Res, $Val extends MovieModel>
               as DateTime,
     ) as $Val);
   }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $UserMovieStatsModelCopyWith<$Res>? get watchedList {
+    if (_value.watchedList == null) {
+      return null;
+    }
+
+    return $UserMovieStatsModelCopyWith<$Res>(_value.watchedList!, (value) {
+      return _then(_value.copyWith(watchedList: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -145,11 +158,14 @@ abstract class _$$MovieModelImplCopyWith<$Res>
       String? poster,
       double rating,
       List<String> categories,
-      @JsonKey(name: 'movie_user_stats') List<UserMovieStatsModel>? watchedList,
+      @JsonKey(name: 'movie_user_stats') UserMovieStatsModel? watchedList,
       @JsonKey(name: 'user_id') String userId,
       @JsonKey(name: 'user_name') String userName,
       @JsonKey(name: 'group_id') int groupId,
       @JsonKey(name: 'created_at') DateTime createdAt});
+
+  @override
+  $UserMovieStatsModelCopyWith<$Res>? get watchedList;
 }
 
 /// @nodoc
@@ -196,9 +212,9 @@ class __$$MovieModelImplCopyWithImpl<$Res>
           : categories // ignore: cast_nullable_to_non_nullable
               as List<String>,
       watchedList: freezed == watchedList
-          ? _value._watchedList
+          ? _value.watchedList
           : watchedList // ignore: cast_nullable_to_non_nullable
-              as List<UserMovieStatsModel>?,
+              as UserMovieStatsModel?,
       userId: null == userId
           ? _value.userId
           : userId // ignore: cast_nullable_to_non_nullable
@@ -228,14 +244,12 @@ class _$MovieModelImpl implements _MovieModel {
       required this.poster,
       required this.rating,
       required final List<String> categories,
-      @JsonKey(name: 'movie_user_stats')
-      final List<UserMovieStatsModel>? watchedList,
+      @JsonKey(name: 'movie_user_stats') this.watchedList,
       @JsonKey(name: 'user_id') required this.userId,
       @JsonKey(name: 'user_name') required this.userName,
       @JsonKey(name: 'group_id') required this.groupId,
       @JsonKey(name: 'created_at') required this.createdAt})
-      : _categories = categories,
-        _watchedList = watchedList;
+      : _categories = categories;
 
   factory _$MovieModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$MovieModelImplFromJson(json);
@@ -256,17 +270,9 @@ class _$MovieModelImpl implements _MovieModel {
     return EqualUnmodifiableListView(_categories);
   }
 
-  final List<UserMovieStatsModel>? _watchedList;
   @override
   @JsonKey(name: 'movie_user_stats')
-  List<UserMovieStatsModel>? get watchedList {
-    final value = _watchedList;
-    if (value == null) return null;
-    if (_watchedList is EqualUnmodifiableListView) return _watchedList;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(value);
-  }
-
+  final UserMovieStatsModel? watchedList;
   @override
   @JsonKey(name: 'user_id')
   final String userId;
@@ -296,8 +302,8 @@ class _$MovieModelImpl implements _MovieModel {
             (identical(other.rating, rating) || other.rating == rating) &&
             const DeepCollectionEquality()
                 .equals(other._categories, _categories) &&
-            const DeepCollectionEquality()
-                .equals(other._watchedList, _watchedList) &&
+            (identical(other.watchedList, watchedList) ||
+                other.watchedList == watchedList) &&
             (identical(other.userId, userId) || other.userId == userId) &&
             (identical(other.userName, userName) ||
                 other.userName == userName) &&
@@ -315,7 +321,7 @@ class _$MovieModelImpl implements _MovieModel {
       poster,
       rating,
       const DeepCollectionEquality().hash(_categories),
-      const DeepCollectionEquality().hash(_watchedList),
+      watchedList,
       userId,
       userName,
       groupId,
@@ -337,18 +343,17 @@ class _$MovieModelImpl implements _MovieModel {
 
 abstract class _MovieModel implements MovieModel {
   const factory _MovieModel(
-          {required final int id,
-          required final String title,
-          required final String? poster,
-          required final double rating,
-          required final List<String> categories,
-          @JsonKey(name: 'movie_user_stats')
-          final List<UserMovieStatsModel>? watchedList,
-          @JsonKey(name: 'user_id') required final String userId,
-          @JsonKey(name: 'user_name') required final String userName,
-          @JsonKey(name: 'group_id') required final int groupId,
-          @JsonKey(name: 'created_at') required final DateTime createdAt}) =
-      _$MovieModelImpl;
+      {required final int id,
+      required final String title,
+      required final String? poster,
+      required final double rating,
+      required final List<String> categories,
+      @JsonKey(name: 'movie_user_stats') final UserMovieStatsModel? watchedList,
+      @JsonKey(name: 'user_id') required final String userId,
+      @JsonKey(name: 'user_name') required final String userName,
+      @JsonKey(name: 'group_id') required final int groupId,
+      @JsonKey(name: 'created_at')
+      required final DateTime createdAt}) = _$MovieModelImpl;
 
   factory _MovieModel.fromJson(Map<String, dynamic> json) =
       _$MovieModelImpl.fromJson;
@@ -365,7 +370,7 @@ abstract class _MovieModel implements MovieModel {
   List<String> get categories;
   @override
   @JsonKey(name: 'movie_user_stats')
-  List<UserMovieStatsModel>? get watchedList;
+  UserMovieStatsModel? get watchedList;
   @override
   @JsonKey(name: 'user_id')
   String get userId;

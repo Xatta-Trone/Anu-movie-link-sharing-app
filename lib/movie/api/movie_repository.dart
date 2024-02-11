@@ -13,7 +13,21 @@ MovieRepository movieRepository(MovieRepositoryRef _) => MovieRepository();
 class MovieRepository {
   final _client = Supabase.instance.client;
 
-  Future<List<MovieModel>> getMovies({
+  Future<List<MovieModel>> getMovies({int page = 1, required String groupId, String query = '', int perPage = 10, String filter = "ALL"}) async {
+    if (filter == "PENDING") {
+      // todo: get pending movies
+      return getPendingMoviesByUserByGroup(groupId: groupId, page: page, query: query, perPage: perPage);
+    }
+
+    if (filter == "WATCHED") {
+      // todo: get watched movies
+      return getWatchedMoviesByUserByGroup(groupId: groupId, page: page, query: query, perPage: perPage);
+    }
+
+    return getAllMovies(groupId: groupId, page: page, query: query, perPage: perPage);
+  }
+
+  Future<List<MovieModel>> getAllMovies({
     int page = 1,
     required String groupId,
     String query = '',
@@ -27,9 +41,43 @@ class MovieRepository {
       throw 'Not logged in';
     }
     query = '%$query%';
+    final response =
+        await _client.from('movies').select("*").ilike('title', query).eq('group_id', groupId).range(from, to).order('id', ascending: false);
+    if (kDebugMode) {
+      print(response.toString());
+    }
+
+    return response.map<MovieModel>((json) => MovieModel.fromJson(json)).toList();
+  }
+
+  Future<List<MovieModel>> getWatchedMoviesByUserByGroup({
+    int page = 1,
+    required String groupId,
+    String query = '',
+    int perPage = 10,
+  }) async {
+    final userId = _client.auth.currentSession?.user.id;
+    final from = (page - 1) * perPage;
+    final to = page * perPage;
+
+    if (userId == null) {
+      throw 'Not logged in';
+    }
+
+    final watchedMovies = await _client.from('movie_user_stats').select('*').eq('user_id', userId);
+    final watchedMovieIds =
+        watchedMovies.map<UserMovieStatsModel>((json) => UserMovieStatsModel.fromJson(json)).toList().map((e) => e.movieId).toList();
+
+    if (kDebugMode) {
+      print(watchedMovies);
+      print(watchedMovieIds);
+    }
+
+    query = '%$query%';
     final response = await _client
         .from('movies')
-        .select("*,movie_user_stats!left(*)")
+        .select("*")
+        .inFilter('id', watchedMovieIds)
         .ilike('title', query)
         .eq('group_id', groupId)
         .range(from, to)
@@ -41,9 +89,49 @@ class MovieRepository {
     return response.map<MovieModel>((json) => MovieModel.fromJson(json)).toList();
   }
 
+  Future<List<MovieModel>> getPendingMoviesByUserByGroup({
+    int page = 1,
+    required String groupId,
+    String query = '',
+    int perPage = 10,
+  }) async {
+    final userId = _client.auth.currentSession?.user.id;
+    final from = (page - 1) * perPage;
+    final to = page * perPage;
+
+    if (userId == null) {
+      throw 'Not logged in';
+    }
+
+    final watchedMovies = await _client.from('movie_user_stats').select('*').eq('user_id', userId);
+    final watchedMovieIds =
+        watchedMovies.map<UserMovieStatsModel>((json) => UserMovieStatsModel.fromJson(json)).toList().map((e) => e.movieId).toList();
+
+    if (kDebugMode) {
+      print(watchedMovies);
+      print(watchedMovieIds);
+    }
+
+    query = '%$query%';
+    final response = await _client
+        .from('movies')
+        .select("*")
+        .not('id', 'in', watchedMovieIds)
+        .ilike('title', query)
+        .eq('group_id', groupId)
+        .range(from, to)
+        .order('id', ascending: false);
+
+    if (kDebugMode) {
+      print(response.toString());
+    }
+
+    return response.map<MovieModel>((json) => MovieModel.fromJson(json)).toList();
+  }
+
   Future<List<UserMovieStatsModel>> getWatchedMovies({required List<int> movieIds}) async {
     final userId = _client.auth.currentSession?.user.id;
-    final response = await _client.from('movie_user_stats').select('*').eq('user_id', userId!).inFilter('movie_id', movieIds);
+    final response = await _client.from('movie_user_stats').select('*').eq('user_id', userId!).inFilter('movie_id', movieIds.toList());
     return response.map<UserMovieStatsModel>((json) => UserMovieStatsModel.fromJson(json)).toList();
   }
 

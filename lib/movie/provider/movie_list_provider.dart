@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_public_notifier_properties
 
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:anu3/movie/api/movie_repository.dart';
 import 'package:anu3/movie/model/movie_model.dart';
@@ -25,7 +24,13 @@ class MovieListNotifier extends _$MovieListNotifier {
     return [];
   }
 
-  Future<void> fetchMovies({int page = 1, required String groupId, bool resetValue = false, String searchQuery = ""}) async {
+  Future<void> fetchMovies({
+    int page = 1,
+    required String groupId,
+    bool resetValue = false,
+    String searchQuery = "",
+    String filter = "ALL",
+  }) async {
     if (resetValue == false && _timer.isActive) {
       return;
     }
@@ -42,6 +47,7 @@ class MovieListNotifier extends _$MovieListNotifier {
             groupId: groupId,
             query: searchQuery,
             perPage: perPage,
+            filter: filter
           );
 
       // updateWatchList(data.map((e) => e.id).toList());
@@ -53,24 +59,50 @@ class MovieListNotifier extends _$MovieListNotifier {
         _page++;
       }
 
-      if (resetValue) {
-        return data;
+      if (kDebugMode) {
+        print('original data');
+        print(data);
       }
 
-      return state.value! + data;
-    });
+      // map the data
+      var movieIds = data.map((e) => e.id).toList();
+      var watched = await ref.read(movieRepositoryProvider).getWatchedMovies(movieIds: movieIds);
+      var watchedMovieIds = watched.map((e) => e.movieId).toList();
 
-    var ids = state.value!.map((e) => e.id).toSet();
-    var ids2 = watched.map((e) => e.movieId).toSet();
-    ids.removeWhere((e) => ids2.contains(e));
-    if (kDebugMode) {
-      print(ids.toList());
-    }
+      var newData = data.map((movie) {
+        var hasWatched = watchedMovieIds.contains(movie.id);
+        if (hasWatched) {
+          return movie.copyWith(watchedList: watched.firstWhere((element) => element.movieId == movie.id));
+        }
+        return movie;
+      }).toList();
+
+      if (kDebugMode) {
+        print('new data');
+        print(newData);
+      }
+
+      if (resetValue) {
+        return newData;
+      }
+
+      return state.value! + newData;
+    });
   }
 
-  void updateWatchList(List<int> ids) {
-    ref.read(movieRepositoryProvider).getWatchedMovies(movieIds: ids).then((value) {
+  bool checkIfWatched(int movieId) {
+    bool check = watched.any((element) => element.movieId == movieId);
+    if (kDebugMode) {
+      print(watched);
+      print(check);
+    }
+    return check;
+  }
+
+  Future<void> updateWatchList(List<int> movieIds) async {
+    await ref.read(movieRepositoryProvider).getWatchedMovies(movieIds: movieIds).then((value) {
       if (kDebugMode) {
+        print('update watchlist');
         print(value);
       }
       watched.addAll(value);
@@ -78,15 +110,15 @@ class MovieListNotifier extends _$MovieListNotifier {
   }
 
   Future<int?> toggleWatched(MovieModel movie) async {
-    if (movie.watchedList!.isNotEmpty) {
+    if (movie.watchedList != null) {
       // delete record
       if (kDebugMode) {
         print('delete record');
       }
-      var value = await ref.read(movieRepositoryProvider).deleteWatchedMovies(model: movie.watchedList![0]);
+      var value = await ref.read(movieRepositoryProvider).deleteWatchedMovies(model: movie.watchedList!);
 
       if (value == true) {
-        var copy = movie.copyWith(watchedList: []);
+        var copy = movie.copyWith(watchedList: null);
         updateMovie(movie: copy);
         return 1;
       }
@@ -98,26 +130,26 @@ class MovieListNotifier extends _$MovieListNotifier {
       var value = await ref.read(movieRepositoryProvider).addWatchedMovie(movieId: movie.id);
 
       if (value != null) {
-        var copy = movie.copyWith(watchedList: [...movie.watchedList!, value]);
+        var copy = movie.copyWith(watchedList: value);
         updateMovie(movie: copy);
         return 2;
       }
     }
     return null;
-   
   }
 
   Future<void> fetchNextPage({
     String query = "",
     required String groupId,
+    String filter = "ALL"
   }) {
     if (hasMore) {
-      fetchMovies(page: _page, groupId: groupId);
+      fetchMovies(page: _page, groupId: groupId, filter: filter);
     }
     return Future.value();
   }
 
-  Future<void> fetchFresh({String query = "", required String groupId}) {
+  Future<void> fetchFresh({String query = "", required String groupId, String filter = "ALL"}) {
     state = const AsyncValue.loading();
     _page = 1;
     hasMore = true;
@@ -127,6 +159,7 @@ class MovieListNotifier extends _$MovieListNotifier {
       groupId: groupId,
       resetValue: true,
       searchQuery: query,
+      filter: filter,
     );
     return Future.value();
   }

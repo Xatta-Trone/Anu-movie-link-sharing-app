@@ -18,6 +18,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       _selectedIndex = index;
     });
   }
+  
 
   static const List<Widget> _pages = <Widget>[
     GroupHomePage(),
@@ -27,8 +28,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: _pages[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,

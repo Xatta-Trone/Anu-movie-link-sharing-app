@@ -15,9 +15,10 @@ _$MovieModelImpl _$$MovieModelImplFromJson(Map<String, dynamic> json) =>
       categories: (json['categories'] as List<dynamic>)
           .map((e) => e as String)
           .toList(),
-      watchedList: (json['movie_user_stats'] as List<dynamic>?)
-          ?.map((e) => UserMovieStatsModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      watchedList: json['movie_user_stats'] == null
+          ? null
+          : UserMovieStatsModel.fromJson(
+              json['movie_user_stats'] as Map<String, dynamic>),
       userId: json['user_id'] as String,
       userName: json['user_name'] as String,
       groupId: json['group_id'] as int,
